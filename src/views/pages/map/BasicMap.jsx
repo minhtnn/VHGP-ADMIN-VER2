@@ -31,7 +31,7 @@ export default function BasicMap() {
       iconSize: point(33, 33, true),
     });
   };
-
+ 
   const [showSatellite, setShowSatellite] = useState(true);
 
   const toggleMapType = () => {

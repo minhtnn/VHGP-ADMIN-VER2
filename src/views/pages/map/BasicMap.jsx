@@ -9,6 +9,11 @@ import axios from "axios";
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
 
+  const [showSatellite, setShowSatellite] = useState(() => {
+    const storedMapType = localStorage.getItem("mapType");
+    return storedMapType === "satellite";
+  });
+
   // create custom icon
   const customIcon = new Icon({
     iconUrl: "https://cdn-icons-png.flaticon.com/128/7541/7541900.png",
@@ -24,11 +29,13 @@ export default function BasicMap() {
     });
   };
  
-  const [showSatellite, setShowSatellite] = useState(true);
-
-  const toggleMapType = () => {
-    setShowSatellite(!showSatellite);
+    const toggleMapType = () => {
+    const newMapType = !showSatellite;
+    setShowSatellite(newMapType);
+    localStorage.setItem("mapType", newMapType ? "satellite" : "default");
   };
+
+
 
   useEffect(() => {
     const fetchData = async () => {

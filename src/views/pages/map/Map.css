@@ -16,7 +16,7 @@
 .leaflet-container {
   height: 100vh;
   width: 100%;
-  position: relative; /* Thêm để các phần tử con có thể sử dụng position: absolute */
+  position: relative;
 }
 
 .cluster-icon {
@@ -39,10 +39,10 @@
 
 
 .toggle-btn {
-  position: absolute; /* Vẫn sử dụng absolute cho nút */
+  position: absolute; 
   top: 10px;
   right: 10px;
-  z-index: 1000; /* Đảm bảo nút hiển thị trên cùng */
+  z-index: 1000; 
   padding: 10px;
   background-color: #ffffff;
   border: 1px solid #ccc;
@@ -51,33 +51,136 @@
 }
 /* CSS cho Popup */
 .leaflet-popup-content-wrapper {
-  background-color: #f9fafb; /* Màu nền nhẹ nhàng */
-  border-radius: 8px; /* Bo tròn góc */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Đổ bóng */
-  padding: 16px; /* Khoảng cách bên trong popup */
-  width: 250px; /* Độ rộng popup */
+  background-color: #f9fafb; 
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+  padding: 16px; 
+  width: 250px;
 }
 
 
 .leaflet-popup-content {
-  text-align: left; /* Căn trái nội dung */
+  text-align: left; 
 }
 
 .leaflet-popup-content img {
-  width: 100px; /* Kích thước ảnh */
-  border-radius: 50%; /* Làm tròn ảnh */
-  margin-bottom: 10px; /* Khoảng cách với nội dung dưới */
+  width: 100px; 
+  border-radius: 50%; 
+  margin-bottom: 10px; 
 }
 
 .leaflet-popup-content h2 {
-  margin-bottom: 5px; /* Khoảng cách với nội dung dưới */
-  font-size: 18px; /* Kích thước tiêu đề */
-  font-weight: bold; /* Đậm */
-  color: #333; /* Màu chữ */
+  margin-bottom: 5px; 
+  font-size: 18px; 
+  font-weight: bold;
+  color: #333; 
 }
 
 .leaflet-popup-content p {
-  font-size: 14px; /* Kích thước văn bản */
-  margin-bottom: 10px; /* Khoảng cách với nội dung dưới */
-  color: #555; /* Màu chữ */
+  font-size: 14px; 
+  margin-bottom: 10px; 
+  color: #555;
+}
+
+
+
+
+/* Right Menu */
+/* Add this CSS for the right menu */
+.right-menu {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: none;
+}
+
+.right-menu.show {
+  display: block;
+}
+
+.shipper-list {
+  margin-bottom: 10px;
+}
+
+.shipper-list h3 {
+  margin-bottom: 5px;
+}
+
+.shipper-list ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.shipper-list ul li {
+  margin-bottom: 5px;
+}
+
+.toggle-shipper-list-btn {
+  padding: 5px 10px;
+  background-color: #3498db;
+  border: none;
+  color: #ffffff;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.toggle-shipper-list-btn:hover {
+  background-color: #2980b9;
+}
+
+
+/* Add this CSS for the right menu */
+.right-menu {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: none;
+}
+
+.right-menu.show {
+  display: block;
+}
+
+.shipper-list {
+  margin-bottom: 10px;
+}
+
+.shipper-list h3 {
+  margin-bottom: 5px;
+}
+
+.shipper-list ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.shipper-list ul li {
+  margin-bottom: 5px;
+}
+
+.toggle-shipper-list-btn {
+  padding: 5px 10px;
+  background-color: #3498db;
+  border: none;
+  color: #ffffff;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.toggle-shipper-list-btn:hover {
+  background-color: #2980b9;
 }

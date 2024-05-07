@@ -49,35 +49,35 @@
   border-radius: 5px;
   cursor: pointer;
 }
-
 /* CSS cho Popup */
 .leaflet-popup-content-wrapper {
-  background-color: #fefefe;
-  border: 1px solid #888;
-  border-radius: 5px;
-  padding: 10px;
+  background-color: #f9fafb; /* Màu nền nhẹ nhàng */
+  border-radius: 8px; /* Bo tròn góc */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Đổ bóng */
+  padding: 16px; /* Khoảng cách bên trong popup */
+  width: 250px; /* Độ rộng popup */
 }
 
+
 .leaflet-popup-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: left; /* Căn trái nội dung */
 }
 
 .leaflet-popup-content img {
-  width: 100px; /* Điều chỉnh kích thước ảnh */
+  width: 100px; /* Kích thước ảnh */
   border-radius: 50%; /* Làm tròn ảnh */
-  margin-bottom: 10px;
+  margin-bottom: 10px; /* Khoảng cách với nội dung dưới */
 }
 
 .leaflet-popup-content h2 {
-  margin-bottom: 5px;
-  font-size: 16px;
-  font-weight: bold;
+  margin-bottom: 5px; /* Khoảng cách với nội dung dưới */
+  font-size: 18px; /* Kích thước tiêu đề */
+  font-weight: bold; /* Đậm */
+  color: #333; /* Màu chữ */
 }
 
 .leaflet-popup-content p {
-  font-size: 14px;
-  margin-bottom: 5px;
+  font-size: 14px; /* Kích thước văn bản */
+  margin-bottom: 10px; /* Khoảng cách với nội dung dưới */
+  color: #555; /* Màu chữ */
 }
-

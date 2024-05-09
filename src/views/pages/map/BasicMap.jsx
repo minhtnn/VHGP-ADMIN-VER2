@@ -9,14 +9,21 @@ import axios from "axios";
 import {
   Avatar,
   Button,
-  ButtonGroup,
   Divider,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
   Typography,
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialIcon,
 } from "@mui/material";
+
+import { OnlinePrediction} from "@mui/icons-material";
+import WifiTetheringOffIcon from '@mui/icons-material/WifiTetheringOff';
+import MenuIcon from "@mui/icons-material/Menu";
+
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
@@ -96,6 +103,19 @@ export default function BasicMap() {
     return () => clearInterval(intervalId);
   }, []);
 
+  const actions = [
+    {
+      icon: <OnlinePrediction />,
+      name: "Show Online Shipper",
+      onClick: handleShowOnlineShippers,
+    },
+    {
+      icon: <WifiTetheringOffIcon />,
+      name: "Show Offline Shipper",
+      onClick: handleShowOfflineShippers,
+    },
+  ];
+
   return (
     <>
       <MapContainer ref={mapRef} center={[10.8387503, 106.8347127]} zoom={13}>
@@ -112,25 +132,22 @@ export default function BasicMap() {
           }
         />
 
-        {/* Button group to show online or offline shippers */}
-        <ButtonGroup
-          disableElevation
-          variant="contained"
-          aria-label="Disabled button group"
-          style={{
-            position: "absolute",
-            top: "1.5%",
-            right: "1%",
-            zIndex: 1000,
-          }}
+        {/* SpeedDial to show online/offline shippers */}
+        <SpeedDial
+          ariaLabel="SpeedDial example"
+          sx={{ position: "absolute", top: 16, right: 16 }}
+          icon={<MenuIcon />}
+          direction="down" // dropdown sẽ đổ xuống
         >
-          <Button onClick={handleShowOnlineShippers}>
-            {showOnlineShippers ? "Hide Online" : "Show Online"}
-          </Button>
-          <Button onClick={handleShowOfflineShippers}>
-            {showOfflineShippers ? "Hide Offline" : "Show Offline"}
-          </Button>
-        </ButtonGroup>
+          {actions.map((action) => (
+            <SpeedDialAction
+              key={action.name}
+              icon={action.icon}
+              tooltipTitle={action.name}
+              onClick={action.onClick}
+            />
+          ))}
+        </SpeedDial>
 
         {/* List of shippers */}
         {(showOnlineShippers || showOfflineShippers) && (
@@ -145,8 +162,8 @@ export default function BasicMap() {
             }}
             style={{
               position: "absolute",
-              top: "7%",
-              right: "1%",
+              top: "1%",
+              right: "6.5%",
               zIndex: 1000,
             }}
           >

@@ -40,8 +40,8 @@
 
 .toggle-btn {
   position: absolute; 
-  top: 10px;
-  right: 10px;
+  top: 1.5%;
+  left: 4%;
   z-index: 1000; 
   padding: 10px;
   background-color: #ffffff;
@@ -84,103 +84,3 @@
 
 
 
-
-/* Right Menu */
-/* Add this CSS for the right menu */
-.right-menu {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  display: none;
-}
-
-.right-menu.show {
-  display: block;
-}
-
-.shipper-list {
-  margin-bottom: 10px;
-}
-
-.shipper-list h3 {
-  margin-bottom: 5px;
-}
-
-.shipper-list ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.shipper-list ul li {
-  margin-bottom: 5px;
-}
-
-.toggle-shipper-list-btn {
-  padding: 5px 10px;
-  background-color: #3498db;
-  border: none;
-  color: #ffffff;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.toggle-shipper-list-btn:hover {
-  background-color: #2980b9;
-}
-
-
-/* Add this CSS for the right menu */
-.right-menu {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  display: none;
-}
-
-.right-menu.show {
-  display: block;
-}
-
-.shipper-list {
-  margin-bottom: 10px;
-}
-
-.shipper-list h3 {
-  margin-bottom: 5px;
-}
-
-.shipper-list ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.shipper-list ul li {
-  margin-bottom: 5px;
-}
-
-.toggle-shipper-list-btn {
-  padding: 5px 10px;
-  background-color: #3498db;
-  border: none;
-  color: #ffffff;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.toggle-shipper-list-btn:hover {
-  background-color: #2980b9;
-}

@@ -16,7 +16,7 @@
 .leaflet-container {
   height: 100vh;
   width: 100%;
-  position: relative; /* Thêm để các phần tử con có thể sử dụng position: absolute */
+  position: relative;
 }
 
 .cluster-icon {
@@ -39,45 +39,48 @@
 
 
 .toggle-btn {
-  position: absolute; /* Vẫn sử dụng absolute cho nút */
-  top: 10px;
-  right: 10px;
-  z-index: 1000; /* Đảm bảo nút hiển thị trên cùng */
+  position: absolute; 
+  top: 1.5%;
+  left: 4%;
+  z-index: 1000; 
   padding: 10px;
   background-color: #ffffff;
   border: 1px solid #ccc;
   border-radius: 5px;
   cursor: pointer;
 }
-
 /* CSS cho Popup */
 .leaflet-popup-content-wrapper {
-  background-color: #fefefe;
-  border: 1px solid #888;
-  border-radius: 5px;
-  padding: 10px;
+  background-color: #f9fafb; 
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+  padding: 16px; 
+  width: 250px;
 }
 
+
 .leaflet-popup-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: left; 
 }
 
 .leaflet-popup-content img {
-  width: 100px; /* Điều chỉnh kích thước ảnh */
-  border-radius: 50%; /* Làm tròn ảnh */
-  margin-bottom: 10px;
+  width: 100px; 
+  border-radius: 50%; 
+  margin-bottom: 10px; 
 }
 
 .leaflet-popup-content h2 {
-  margin-bottom: 5px;
-  font-size: 16px;
+  margin-bottom: 5px; 
+  font-size: 18px; 
   font-weight: bold;
+  color: #333; 
 }
 
 .leaflet-popup-content p {
-  font-size: 14px;
-  margin-bottom: 5px;
+  font-size: 14px; 
+  margin-bottom: 10px; 
+  color: #555;
 }
+
+
 

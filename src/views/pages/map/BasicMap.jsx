@@ -8,7 +8,6 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   Avatar,
-  Button,
   Divider,
   List,
   ListItem,
@@ -20,49 +19,48 @@ import {
   SpeedDialIcon,
 } from "@mui/material";
 
-import { OnlinePrediction} from "@mui/icons-material";
+import { OnlinePrediction } from "@mui/icons-material";
 import WifiTetheringOffIcon from '@mui/icons-material/WifiTetheringOff';
 import MenuIcon from "@mui/icons-material/Menu";
-
+import AlarmOutlinedIcon from '@mui/icons-material/AlarmOutlined';
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
-  const [showOnlineShippers, setShowOnlineShippers] = useState(false);
+  const [showDeliveringShippers, setShowDeliveringShippers] = useState(false);
   const [showOfflineShippers, setShowOfflineShippers] = useState(false);
-  const [showAllShippers, setShowAllShippers] = useState(true); // Mặc định hiển thị tất cả shipper trên map
+  const [showAvailableShippers, setShowAvailableShippers] = useState(false);
 
-  const mapRef = useRef(null); // Tham chiếu đến MapContainer để sử dụng flyTo
+  const mapRef = useRef(null);
 
-  const handleShowOnlineShippers = () => {
-    setShowOnlineShippers(!showOnlineShippers);
+  const handleShowDeliveringShippers = () => {
+    setShowDeliveringShippers(!showDeliveringShippers);
+    setShowAvailableShippers(false);
     setShowOfflineShippers(false);
-    if (!showAllShippers) {
-      setShowAllShippers(true); // Khi chọn hiển thị danh sách online, nếu showAllShippers là false, tức là chỉ đang hiển thị danh sách offline, thì hiển thị tất cả shipper trên map
-    }
+  };
+
+  const handleShowAvailableShippers = () => {
+    setShowAvailableShippers(!showAvailableShippers);
+    setShowDeliveringShippers(false);
+    setShowOfflineShippers(false);
   };
 
   const handleShowOfflineShippers = () => {
     setShowOfflineShippers(!showOfflineShippers);
-    setShowOnlineShippers(false);
-    if (!showOfflineShippers) {
-      setShowAllShippers(false); // Khi chọn hiển thị danh sách offline, nếu showOfflineShippers là false, tức là đang ẩn danh sách offline, thì chỉ hiển thị các shipper đang hoạt động trên map
-    } else {
-      setShowAllShippers(true);
-    }
+    setShowAvailableShippers(false);
+    setShowDeliveringShippers(false);
   };
 
+
   const handleShipperClick = (shipper) => {
-    // Di chuyển đến vị trí của shipper khi click vào ListItem tương ứng
     const { shipperlocation } = shipper;
     mapRef.current.flyTo(shipperlocation, 18);
   };
 
-  // create custom icon
   const customIcon = new Icon({
     iconUrl: "https://cdn-icons-png.flaticon.com/128/7541/7541900.png",
     iconSize: [38, 38],
   });
-  // custom cluster icon
+
   const createClusterCustomIcon = function (cluster) {
     return new divIcon({
       html: `<span class="cluster-icon">${cluster.getChildCount()}</span>`,
@@ -71,12 +69,11 @@ export default function BasicMap() {
     });
   };
 
-  // store the user's current map
   const [showSatellite, setShowSatellite] = useState(() => {
     const storedMapType = localStorage.getItem("mapType");
     return storedMapType === "satellite";
   });
-  // change skin map
+
   const toggleMapType = () => {
     const newMapType = !showSatellite;
     setShowSatellite(newMapType);
@@ -99,22 +96,43 @@ export default function BasicMap() {
 
     const intervalId = setInterval(fetchData, 3000);
 
-    // Clear the interval when the component unmounts
     return () => clearInterval(intervalId);
   }, []);
+
+  const countShippersByStatus = (status) => {
+    return shippers.filter((shipper) => shipper.status === status).length;
+  };
 
   const actions = [
     {
       icon: <OnlinePrediction />,
-      name: "Show Online Shipper",
-      onClick: handleShowOnlineShippers,
+      name: `Shipper đang giao hàng (${countShippersByStatus("Đang Giao Hàng")})`,
+      onClick: handleShowDeliveringShippers,
+    },
+    {
+      icon: <AlarmOutlinedIcon />,
+      name: `Shipper đang chờ đơn (${countShippersByStatus("Đang Chờ Đơn")})`,
+      onClick: handleShowAvailableShippers,
     },
     {
       icon: <WifiTetheringOffIcon />,
-      name: "Show Offline Shipper",
+      name: `Shipper đang offline (${countShippersByStatus("Offline")})`,
       onClick: handleShowOfflineShippers,
     },
   ];
+
+  const filteredShippers = shippers.filter((shipper) => {
+    if (showDeliveringShippers) {
+      return shipper.status === "Đang Giao Hàng";
+    } else if (showAvailableShippers) {
+      return shipper.status === "Đang Chờ Đơn";
+    } else if (showOfflineShippers) {
+      return shipper.status === "Offline";
+    } else {
+      // Hiển thị tất cả shipper đang active
+      return shipper.active;
+    }
+  });
 
   return (
     <>
@@ -132,12 +150,11 @@ export default function BasicMap() {
           }
         />
 
-        {/* SpeedDial to show online/offline shippers */}
         <SpeedDial
           ariaLabel="SpeedDial example"
           sx={{ position: "absolute", top: 16, right: 16 }}
           icon={<MenuIcon />}
-          direction="down" // dropdown sẽ đổ xuống
+          direction="down"
         >
           {actions.map((action) => (
             <SpeedDialAction
@@ -149,8 +166,7 @@ export default function BasicMap() {
           ))}
         </SpeedDial>
 
-        {/* List of shippers */}
-        {(showOnlineShippers || showOfflineShippers) && (
+        {(showDeliveringShippers || showOfflineShippers || showAvailableShippers) && (
           <List
             sx={{
               width: "100%",
@@ -167,51 +183,38 @@ export default function BasicMap() {
               zIndex: 1000,
             }}
           >
-            {shippers
-              .filter((shipper) =>
-                showOnlineShippers ? shipper.active : !shipper.active
-              )
-              .sort((a, b) => {
-                if (a.status === "Đang Chờ Đơn" && b.status !== "Đang Chờ Đơn") {
-                  return -1;
-                }
-                if (a.status !== "Đang Chờ Đơn" && b.status === "Đang Chờ Đơn") {
-                  return 1;
-                }
-                return 0;
-              })
-              .map((shipper) => (
-                <React.Fragment key={shipper.id}>
-                  <ListItem
-                    alignItems="flex-start"
-                    button
-                    onClick={() => handleShipperClick(shipper)}
-                  >
-                    <ListItemAvatar>
-                      <Avatar alt={shipper.id} src={shipper.img} />
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={shipper.id}
-                      secondary={
-                        <>
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            sx={{ display: "inline" }}
-                            color="text.primary"
-                          >
-                            Biển số xe: {shipper.carindentify}
-                            <br />
-                            Trạng thái: <StatusBadge status={shipper.status} />
-                          </Typography>
-                        </>
-                      }
-                    />
-                  </ListItem>
+            {filteredShippers.map((shipper) => (
+              <React.Fragment key={shipper.id}>
+                <ListItem
+                  alignItems="flex-start"
+                  button
+                  onClick={() => handleShipperClick(shipper)}
+                >
+                  <ListItemAvatar>
+                    <Avatar alt={shipper.id} src={shipper.img} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={shipper.id}
+                    secondary={
+                      <>
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          sx={{ display: "inline" }}
+                          color="text.primary"
+                        >
+                          Biển số xe: {shipper.carindentify}
+                          <br />
+                          Trạng thái: <StatusBadge status={shipper.status} />
+                        </Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
 
-                  <Divider variant="inset" component="li" />
-                </React.Fragment>
-              ))}
+                <Divider variant="inset" component="li" />
+              </React.Fragment>
+            ))}
           </List>
         )}
 
@@ -219,27 +222,22 @@ export default function BasicMap() {
           chunkedLoading
           iconCreateFunction={createClusterCustomIcon}
         >
-          {/* Mapping through the markers */}
-          {shippers.map((shipper) =>
-            (showAllShippers && shipper.active) ||
-            (showOnlineShippers && shipper.active) ||
-            (showOfflineShippers && !shipper.active) ? (
-              <Marker
-                key={shipper.id}
-                position={shipper.shipperlocation}
-                icon={customIcon}
-              >
-                <Popup>
-                  <img src={shipper.img} alt={shipper.id} />
-                  <h2>{shipper.id}</h2>
-                  <p>Kinh độ: {shipper.shipperlocation[0]}</p>
-                  <p>Vĩ độ: {shipper.shipperlocation[1]}</p>
-                  <p>Biển số xe: {shipper.carindentify}</p>
-                  <p>Trạng thái: <StatusBadge status={shipper.status} /></p>
-                </Popup>
-              </Marker>
-            ) : null
-          )}
+          {filteredShippers.map((shipper) => (
+            <Marker
+              key={shipper.id}
+              position={shipper.shipperlocation}
+              icon={customIcon}
+            >
+              <Popup>
+                <img src={shipper.img} alt={shipper.id} />
+                <h2>{shipper.id}</h2>
+                <p>Kinh độ: {shipper.shipperlocation[0]}</p>
+                <p>Vĩ độ: {shipper.shipperlocation[1]}</p>
+                <p>Biển số xe: {shipper.carindentify}</p>
+                <p>Trạng thái: <StatusBadge status={shipper.status} /></p>
+              </Popup>
+            </Marker>
+          ))}
         </MarkerClusterGroup>
       </MapContainer>
     </>

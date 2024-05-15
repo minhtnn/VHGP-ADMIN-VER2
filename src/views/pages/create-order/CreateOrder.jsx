@@ -83,27 +83,28 @@ const CreateOrder = ({ navigateToPage }) => {
         setOrderTypeList(data);
       });
   }, []);
-// Filter shop list when area changes
-useEffect(() => {
-  if (area) {
-    const filteredShops = shopList.filter((shop) => shop.idArea === area.value);
-    setFilteredShopList(filteredShops);
-  }
-}, [area, shopList]);
-
-// Filter order type list when store changes
-useEffect(() => {
-  if (store) {
-    const selectedShop = shopList.find((shop) => shop.idShop === store.value);
-    if (selectedShop) {
-      const filteredOrderTypes = orderTypeList.filter((orderType) =>
-        selectedShop.idType.includes(orderType.idType)
+  // Filter shop list when area changes
+  useEffect(() => {
+    if (area) {
+      const filteredShops = shopList.filter(
+        (shop) => shop.idArea === area.value
       );
-      setFilteredOrderTypeList(filteredOrderTypes);
+      setFilteredShopList(filteredShops);
     }
-  }
-}, [store, shopList, orderTypeList]);
+  }, [area, shopList]);
 
+  // Filter order type list when store changes
+  useEffect(() => {
+    if (store) {
+      const selectedShop = shopList.find((shop) => shop.idShop === store.value);
+      if (selectedShop) {
+        const filteredOrderTypes = orderTypeList.filter((orderType) =>
+          selectedShop.idType.includes(orderType.idType)
+        );
+        setFilteredOrderTypeList(filteredOrderTypes);
+      }
+    }
+  }, [store, shopList, orderTypeList]);
 
   const customStyles = {
     control: (provided, state) => ({
@@ -362,15 +363,17 @@ useEffect(() => {
                             storeState === "invalid" && "error-select"
                           }`}
                         >
-                         <Select
-                          options={filteredShopList.map((shop) => ({
-                            label: shop.nameShop,
-                            value: shop.idShop,
-                          }))}
-                          placeholder="Cửa hàng"
-                          value={store}
-                          onChange={(selectedOption) => setStore(selectedOption)}
-                        />
+                          <Select
+                            options={filteredShopList.map((shop) => ({
+                              label: shop.nameShop,
+                              value: shop.idShop,
+                            }))}
+                            placeholder="Cửa hàng"
+                            value={store}
+                            onChange={(selectedOption) =>
+                              setStore(selectedOption)
+                            }
+                          />
                         </div>
                         {storeState === "invalid" && (
                           <div
@@ -399,7 +402,9 @@ useEffect(() => {
                           }))}
                           placeholder="Chọn loại đơn"
                           value={orderType}
-                          onChange={(selectedOption) => setOrderType(selectedOption)}
+                          onChange={(selectedOption) =>
+                            setOrderType(selectedOption)
+                          }
                         />
                       </div>
                     </div>

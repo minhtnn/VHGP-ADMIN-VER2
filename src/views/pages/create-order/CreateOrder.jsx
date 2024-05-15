@@ -8,17 +8,33 @@ import {
   Row,
   Spinner,
 } from "reactstrap";
-import SimpleHeader from "../components/Headers/SimpleHeader";
-import { useContext, useState } from "react";
-import { AppContext } from "../context/AppProvider";
+import SimpleHeader from "../../../components/Headers/SimpleHeader";
+import { useContext, useState, useEffect } from "react";
+import { AppContext } from "../../../context/AppProvider";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
-import { notify } from "../components/Toast/ToastCustom";
-import { postMenu } from "../apis/menuApiService";
+import { notify } from "../../../components/Toast/ToastCustom";
+import { postMenu } from "../../../apis/menuApiService";
 import Select from "react-select";
-import { createOrder } from "../apis/orderApiService";
+import { createOrder } from "../../../apis/orderApiService";
 
-const CreateOrder = () => {
+const CreateOrder = ({ navigateToPage }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const goToPage1 = () => {
+    navigateToPage(1);
+  };
+
+  const goToPage3 = () => {
+    navigateToPage(3);
+  };
   const { buildingList, storeList } = useContext(AppContext);
+
+  const [orderCode, setOrderCode] = useState("");
+  const [orderDate, setOrderDate] = useState("");
+  const [area, setArea] = useState("");
+  const [orderType, setOrderType] = useState("");
+  const [timeReceived, setTimeReceived] = useState("");
+  const [shipper, setShipper] = useState("");
 
   const [store, setStore] = useState("");
   const [storeState, setStoreState] = useState("");
@@ -33,10 +49,61 @@ const CreateOrder = () => {
   const [totalState, setTotalState] = useState("");
   const [note, setNote] = useState("");
   const [payment, setPayment] = useState("");
+  const [expectedPayment, setExpectedPayment] = useState("");
   const [paymentState, setPaymentState] = useState("");
+  const [expectedPaymentState, setExpectedPaymentState] = useState("");
   const [shipCost, setShipCost] = useState("");
   const [shipCostState, setShipCostState] = useState("");
   const [isLoadingCircle, setIsLoadingCircle] = useState(false);
+  const [areaList, setAreaList] = useState([]);
+  const [shopList, setShopList] = useState([]);
+  const [orderTypeList, setOrderTypeList] = useState([]);
+  const [filteredShopList, setFilteredShopList] = useState([]);
+  const [filteredOrderTypeList, setFilteredOrderTypeList] = useState([]);
+
+  useEffect(() => {
+    // Fetch Area data
+    fetch("https://65e177e7a8583365b3166e9d.mockapi.io/Area")
+      .then((response) => response.json())
+      .then((data) => {
+        setAreaList(data);
+      });
+
+    // Fetch Shop data
+    fetch("https://65e177e7a8583365b3166e9d.mockapi.io/Shop")
+      .then((response) => response.json())
+      .then((data) => {
+        setShopList(data);
+      });
+
+    // Fetch Order Type data
+    fetch("https://66430f913c01a059ea2153cd.mockapi.io/orderType")
+      .then((response) => response.json())
+      .then((data) => {
+        setOrderTypeList(data);
+      });
+  }, []);
+// Filter shop list when area changes
+useEffect(() => {
+  if (area) {
+    const filteredShops = shopList.filter((shop) => shop.idArea === area.value);
+    setFilteredShopList(filteredShops);
+  }
+}, [area, shopList]);
+
+// Filter order type list when store changes
+useEffect(() => {
+  if (store) {
+    const selectedShop = shopList.find((shop) => shop.idShop === store.value);
+    if (selectedShop) {
+      const filteredOrderTypes = orderTypeList.filter((orderType) =>
+        selectedShop.idType.includes(orderType.idType)
+      );
+      setFilteredOrderTypeList(filteredOrderTypes);
+    }
+  }
+}, [store, shopList, orderTypeList]);
+
 
   const customStyles = {
     control: (provided, state) => ({
@@ -58,15 +125,15 @@ const CreateOrder = () => {
 
   const optionsStore = storeList.map((item) => {
     return {
-      label: item.name,
-      value: item.id,
+      label: item.nameShop,
+      value: item.idShop,
     };
   });
 
   const optionsBuilding = buildingList.map((item) => {
     return {
-      label: item.name,
-      value: item.id,
+      label: item.nameArea,
+      value: item.idArea,
     };
   });
 
@@ -78,6 +145,8 @@ const CreateOrder = () => {
         return "Thu hộ chuyển khoản";
       case 2:
         return "Đã thanh toán";
+      default:
+        return "";
     }
   };
 
@@ -143,6 +212,14 @@ const CreateOrder = () => {
       setPaymentState("valid");
     }
 
+    // EXPECTED PAYMENT
+    if (expectedPayment === "") {
+      valid = false;
+      setExpectedPaymentState("invalid");
+    } else {
+      setExpectedPaymentState("valid");
+    }
+
     // TOTAL
     if (total === "") {
       valid = false;
@@ -176,6 +253,7 @@ const CreateOrder = () => {
         fullName: name,
         deliveryTimeId: "1",
         paymentType: payment.value,
+        expectedPaymentType: expectedPayment.value,
         shipCost: shipCost,
       };
 
@@ -192,6 +270,7 @@ const CreateOrder = () => {
             setTotal("");
             setNote("");
             setPayment("");
+            setExpectedPayment("");
             setShipCost("");
           }
         })
@@ -208,7 +287,7 @@ const CreateOrder = () => {
       <SimpleHeader name="Tạo vận đơn" parentName="Quản Lý" />
       <Container className="mt--6" fluid>
         <Row>
-          <div className="col-lg-8">
+          <div className="col-lg-12">
             <Card>
               {/* TITLE */}
               <div
@@ -229,6 +308,49 @@ const CreateOrder = () => {
               <div className="col-md-12">
                 <form>
                   <div className="row">
+                    {/* Order Code */}
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">Mã đơn</label>
+                        <Input
+                          className="form-control"
+                          type="text"
+                          value={orderCode}
+                          onChange={(e) => setOrderCode(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Order Date */}
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">Ngày</label>
+                        <Input
+                          className="form-control"
+                          type="date"
+                          value={orderDate}
+                          onChange={(e) => setOrderDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Area */}
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">Khu vực</label>
+                        {/* Assume areaList is an array of area options */}
+                        <Select
+                          options={areaList.map((area) => ({
+                            label: area.nameArea,
+                            value: area.idArea,
+                          }))}
+                          placeholder="Chọn khu vực"
+                          value={area}
+                          onChange={(selectedOption) => setArea(selectedOption)}
+                        />
+                      </div>
+                    </div>
+
                     {/* STORE */}
                     <div className="col-md-6">
                       <div className="form-group">
@@ -240,15 +362,15 @@ const CreateOrder = () => {
                             storeState === "invalid" && "error-select"
                           }`}
                         >
-                          <Select
-                            options={optionsStore}
-                            placeholder="Cửa hàng"
-                            styles={customStyles}
-                            value={store}
-                            onChange={(e) => {
-                              setStore(e);
-                            }}
-                          />
+                         <Select
+                          options={filteredShopList.map((shop) => ({
+                            label: shop.nameShop,
+                            value: shop.idShop,
+                          }))}
+                          placeholder="Cửa hàng"
+                          value={store}
+                          onChange={(selectedOption) => setStore(selectedOption)}
+                        />
                         </div>
                         {storeState === "invalid" && (
                           <div
@@ -262,6 +384,38 @@ const CreateOrder = () => {
                             Cửa hàng không được để trống
                           </div>
                         )}
+                      </div>
+                    </div>
+
+                    {/* Order Type */}
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">Loại Đơn</label>
+                        {/* Assume orderTypeList is an array of order type options */}
+                        <Select
+                          options={filteredOrderTypeList.map((orderType) => ({
+                            label: orderType.nameType,
+                            value: orderType.idType,
+                          }))}
+                          placeholder="Chọn loại đơn"
+                          value={orderType}
+                          onChange={(selectedOption) => setOrderType(selectedOption)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Time Received */}
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Thời gian nhận hàng từ Shop
+                        </label>
+                        <Input
+                          className="form-control"
+                          type="time"
+                          value={timeReceived}
+                          onChange={(e) => setTimeReceived(e.target.value)}
+                        />
                       </div>
                     </div>
 
@@ -385,6 +539,78 @@ const CreateOrder = () => {
                       </div>
                     </div>
 
+                    {/* PAYMENT STATUS  */}
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Trạng thái thanh toán dự kiến
+                        </label>
+                        <div
+                          className={`${
+                            expectedPaymentState === "invalid" && "error-select"
+                          }`}
+                        >
+                          <Select
+                            options={optionsPayment}
+                            placeholder="Thu hộ"
+                            styles={customStyles}
+                            value={expectedPayment}
+                            onChange={(e) => {
+                              setExpectedPayment(e);
+                            }}
+                          />
+                        </div>
+                        {expectedPaymentState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            Trạng thái thanh toán dự kiến không được để trống
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ACTUAL PAYMENT STATUS  */}
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Trạng thái thanh toán thực sự
+                        </label>
+                        <div
+                          className={`${
+                            paymentState === "invalid" && "error-select"
+                          }`}
+                        >
+                          <Select
+                            options={optionsPayment}
+                            placeholder="Thu hộ"
+                            styles={customStyles}
+                            value={payment}
+                            onChange={(e) => {
+                              setPayment(e);
+                            }}
+                          />
+                        </div>
+                        {paymentState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            Trạng thái thanh toán thực sự không được để trống
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                     {/* SHIP COST */}
                     <div className="col-md-6">
                       <div className="form-group">
@@ -412,40 +638,16 @@ const CreateOrder = () => {
                         </div>
                       </div>
                     </div>
-
-                    {/* PAYMENT STATUS */}
+                    {/* Shipper */}
                     <div className="col-md-6">
                       <div className="form-group">
-                        <label className="form-control-label">
-                          Trạng thái thanh toán
-                        </label>
-                        <div
-                          className={`${
-                            paymentState === "invalid" && "error-select"
-                          }`}
-                        >
-                          <Select
-                            options={optionsPayment}
-                            placeholder="Thu hộ"
-                            styles={customStyles}
-                            value={payment}
-                            onChange={(e) => {
-                              setPayment(e);
-                            }}
-                          />
-                        </div>
-                        {paymentState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            Trạng thái thanh toán không được để trống
-                          </div>
-                        )}
+                        <label className="form-control-label">Shipper</label>
+                        <Input
+                          className="form-control"
+                          type="text"
+                          value={shipper}
+                          onChange={(e) => setShipper(e.target.value)}
+                        />
                       </div>
                     </div>
 
@@ -497,21 +699,14 @@ const CreateOrder = () => {
                         {isLoadingCircle ? (
                           <Spinner
                             style={{
-                              color: "#fff",
-                              width: "1.31rem",
-                              height: "1.31rem",
+                              color: "#000",
+                              height: 25,
+                              width: 25,
+                              margin: "auto",
                             }}
-                          >
-                            Loading...
-                          </Spinner>
+                          />
                         ) : (
-                          <>
-                            <i
-                              className="fa-solid fa-square-plus"
-                              style={{ fontSize: 18, color: "#fff" }}
-                            ></i>
-                            <span style={{ color: "#fff" }}>Thêm mới</span>
-                          </>
+                          "Tạo"
                         )}
                       </div>
                     </Button>
@@ -522,6 +717,8 @@ const CreateOrder = () => {
           </div>
         </Row>
       </Container>
+      {/* Nút chuyển trang */}
+      <button onClick={() => navigateToPage(1)}>Trang tiếp theo</button>
     </>
   );
 };

@@ -1,7 +1,13 @@
 import "./Map.css";
 import StatusBadge from "./StatusBadge";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Polyline,
+} from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { Icon, divIcon, point } from "leaflet";
 import React, { useState, useEffect, useRef } from "react";
@@ -16,11 +22,10 @@ import {
   Typography,
   SpeedDial,
   SpeedDialAction,
-  SpeedDialIcon,
 } from "@mui/material";
 
 import { OnlinePrediction } from "@mui/icons-material";
-import WifiTetheringOffIcon from '@mui/icons-material/WifiTetheringOff';
+import WifiTetheringOffIcon from "@mui/icons-material/WifiTetheringOff";
 import MenuIcon from "@mui/icons-material/Menu";
 import AlarmOutlinedIcon from '@mui/icons-material/AlarmOutlined';
 import RoutingLine from "./LeafRoutingMachine";
@@ -30,6 +35,11 @@ export default function BasicMap() {
   const [showDeliveringShippers, setShowDeliveringShippers] = useState(false);
   const [showOfflineShippers, setShowOfflineShippers] = useState(false);
   const [showAvailableShippers, setShowAvailableShippers] = useState(false);
+  const [shipperPaths, setShipperPaths] = useState(() => {
+    const savedPaths = localStorage.getItem("shipperPaths");
+    return savedPaths ? JSON.parse(savedPaths) : {};
+  });
+  const [selectedShipperId, setSelectedShipperId] = useState(null);
 
   const mapRef = useRef(null);
 
@@ -51,10 +61,16 @@ export default function BasicMap() {
     setShowDeliveringShippers(false);
   };
 
-
   const handleShipperClick = (shipper) => {
-    const { shipperlocation } = shipper;
-    mapRef.current.flyTo(shipperlocation, 18);
+    if (selectedShipperId === shipper.id) {
+      // Nếu shipper hiện tại đã được chọn, bỏ chọn và ẩn đường đi
+      setSelectedShipperId(null);
+    } else {
+      // Nếu chọn shipper mới, cập nhật selectedShipperId và hiển thị đường đi
+      setSelectedShipperId(shipper.id);
+      const shipperlocation = [shipper.latitude, shipper.longitude];
+      mapRef.current.flyTo(shipperlocation, 18);
+    }
   };
 
   const customIcon = new Icon({
@@ -85,29 +101,46 @@ export default function BasicMap() {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "https://65e177e7a8583365b3166e9d.mockapi.io/datashipper"
+          "http://vhgp-api.vhgp.net/api/Shipper/GetRedis"
         );
         setShippers(response.data);
+        const newShippers = response.data;
+        const newPaths = { ...shipperPaths };
+
+        newShippers.forEach((shipper) => {
+          if (!newPaths[shipper.id]) {
+            newPaths[shipper.id] = [];
+          }
+          newPaths[shipper.id].push([
+            parseFloat(shipper.latitude),
+            parseFloat(shipper.longitude),
+          ]);
+        });
+
+        localStorage.setItem("shipperPaths", JSON.stringify(newPaths));
+        console.log("Final updated paths:", shipperPaths); // Logging the final path structure
+        console.log("3s..", shippers);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
     fetchData();
-
     const intervalId = setInterval(fetchData, 3000);
-
     return () => clearInterval(intervalId);
   }, []);
 
   const countShippersByStatus = (status) => {
-    return shippers.filter((shipper) => shipper.status === status).length;
+    return shippers.filter(
+      (shipper) => shipper.status.toLowerCase() === status.toLowerCase()
+    ).length;
   };
 
   const actions = [
     {
       icon: <OnlinePrediction />,
-      name: `Shipper đang giao hàng (${countShippersByStatus("Đang Giao Hàng")})`,
+      name: `Shipper đang giao hàng (${countShippersByStatus(
+        "Đang Giao Hàng"
+      )})`,
       onClick: handleShowDeliveringShippers,
     },
     {
@@ -124,14 +157,14 @@ export default function BasicMap() {
 
   const filteredShippers = shippers.filter((shipper) => {
     if (showDeliveringShippers) {
-      return shipper.status === "Đang Giao Hàng";
+      return shipper.status.toLowerCase() === "đang giao hàng";
     } else if (showAvailableShippers) {
-      return shipper.status === "Đang Chờ Đơn";
+      return shipper.status.toLowerCase() === "đang chờ đơn";
     } else if (showOfflineShippers) {
-      return shipper.status === "Offline";
+      return shipper.status.toLowerCase() === "offline";
     } else {
       // Hiển thị tất cả shipper đang active
-      return shipper.active;
+      return shipper.isActive;
     }
   });
 
@@ -146,13 +179,22 @@ export default function BasicMap() {
     }
   ];
 
+
+  function getRandomColor() {
+    var letters = "0123456789ABCDEF";
+    var color = "#";
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+
   return (
     <>
       <MapContainer ref={mapRef} center={[10.8387503, 106.8347127]} zoom={13}>
         <button className="toggle-btn" onClick={toggleMapType}>
           {showSatellite ? "Switch to Default Map" : "Switch to Satellite Map"}
         </button>
-
         <TileLayer
           attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url={
@@ -161,6 +203,15 @@ export default function BasicMap() {
               : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           }
         />
+        {selectedShipperId && shipperPaths[selectedShipperId] ? (
+          <Polyline
+            key={
+              selectedShipperId + "-" + shipperPaths[selectedShipperId].length
+            }
+            pathOptions={{ color: getRandomColor(), weight: 5, opacity: 0.7 }}
+            positions={shipperPaths[selectedShipperId]}
+          />
+        ) : null}
 
         <SpeedDial
           ariaLabel="SpeedDial example"
@@ -178,7 +229,9 @@ export default function BasicMap() {
           ))}
         </SpeedDial>
 
-        {(showDeliveringShippers || showOfflineShippers || showAvailableShippers) && (
+        {(showDeliveringShippers ||
+          showOfflineShippers ||
+          showAvailableShippers) && (
           <List
             sx={{
               width: "100%",
@@ -237,16 +290,21 @@ export default function BasicMap() {
           {filteredShippers.map((shipper) => (
             <Marker
               key={shipper.id}
-              position={shipper.shipperlocation}
+              position={[shipper.latitude, shipper.longitude]}
               icon={customIcon}
+              eventHandlers={{
+                click: () => handleShipperClick(shipper),
+              }}
             >
               <Popup>
                 <img src={shipper.img} alt={shipper.id} />
                 <h2>{shipper.id}</h2>
-                <p>Kinh độ: {shipper.shipperlocation[0]}</p>
-                <p>Vĩ độ: {shipper.shipperlocation[1]}</p>
+                <p>Kinh độ: {shipper.latitude}</p>
+                <p>Vĩ độ: {shipper.longitude}</p>
                 <p>Biển số xe: {shipper.carindentify}</p>
-                <p>Trạng thái: <StatusBadge status={shipper.status} /></p>
+                <p>
+                  Trạng thái: <StatusBadge status={shipper.status} />
+                </p>
               </Popup>
             </Marker>
           ))}

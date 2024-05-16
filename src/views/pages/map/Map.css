@@ -63,7 +63,7 @@
   text-align: left; 
 }
 
-.leaflet-popup-content img {
+.leaflet-popup-content img { 
   width: 100px; 
   border-radius: 50%; 
   margin-bottom: 10px; 

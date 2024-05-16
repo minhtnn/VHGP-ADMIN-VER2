@@ -14,7 +14,7 @@ z
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import OrderContainer from './views/pages/create-order/OrderContainer.jsx'
+import CreateOrder from './views/pages/create-order/CreateOrder.jsx'
 import AreaManage from './views/pages/areas/AreaManage.jsx'
 import BrandManage from './views/pages/brands/BrandManage.jsx'
 import CategoryManage from './views/pages/categories/CategoryManage.jsx'
@@ -84,8 +84,7 @@ const routes = [
     path: '/create-order',
     name: 'Tạo Vận Đơn',
     icon: 'fa-solid fa-pencil',
-    // component: OrderContainer,
-    component: CreateBillOfLading,
+    component: CreateOrder,
     layout: '/admin',
   },
   {

@@ -96,6 +96,7 @@ const OrderPage1 = () => {
     }
   }, [store, shopList, orderTypeList]);
 
+  //style for selecte 
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
@@ -108,6 +109,7 @@ const OrderPage1 = () => {
       borderRadius: "0.5rem",
     }),
 
+    //input
     input: (provided, state) => ({
       ...provided,
       margin: "5px",
@@ -291,7 +293,7 @@ const OrderPage1 = () => {
                 className="align-items-center"
               >
                 <CardHeader className="border-0" style={{ padding: "15px" }}>
-                  <h2 className="mb-0">Thông tin chung </h2>
+                  <h2 className="mb-0">Thông tin đơn hàng </h2>
                 </CardHeader>
               </div>
 
@@ -398,7 +400,7 @@ const OrderPage1 = () => {
                         />
                       </div>
                     </div>
-
+                          
                     {/* Time Received */}
                     <div className="col-md-6">
                       <div className="form-group">
@@ -449,7 +451,20 @@ const OrderPage1 = () => {
                         )}
                       </div>
                     </div>
-
+ {/* TITLE */}
+ <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  padding: "10px 0px",
+                }}
+                className="align-items-center"
+              >
+                <CardHeader className="border-0" style={{ padding: "15px" }}>
+                  <h2 className="mb-0">Thông tin khách hàng </h2>
+                </CardHeader>
+              </div>
                     {/* FULL NAME */}
                     <div className="col-md-6">
                       <div className="form-group">

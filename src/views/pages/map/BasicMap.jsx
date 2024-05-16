@@ -27,7 +27,8 @@ import {
 import { OnlinePrediction } from "@mui/icons-material";
 import WifiTetheringOffIcon from "@mui/icons-material/WifiTetheringOff";
 import MenuIcon from "@mui/icons-material/Menu";
-import AlarmOutlinedIcon from "@mui/icons-material/AlarmOutlined";
+import AlarmOutlinedIcon from '@mui/icons-material/AlarmOutlined';
+import RoutingLine from "./LeafRoutingMachine";
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
@@ -293,6 +294,19 @@ export default function BasicMap() {
       return shipper.isActive;
     }
   });
+
+  var locations = [
+    {
+      "longitude": 10.8431579,
+      "latitude":106.8365875,
+    },
+    {
+      "longitude": 10.8368910, 
+      "latitude":106.8305375,
+    }
+  ];
+
+
   function getRandomColor() {
     var letters = "0123456789ABCDEF";
     var color = "#";
@@ -301,6 +315,7 @@ export default function BasicMap() {
     }
     return color;
   }
+
   return (
     <>
       <MapContainer ref={mapRef} center={[10.8387503, 106.8347127]} zoom={13}>
@@ -499,6 +514,7 @@ export default function BasicMap() {
                 </Marker>
               ))}
         </MarkerClusterGroup>
+        <RoutingLine locations={locations}/>
       </MapContainer>
     </>
   );

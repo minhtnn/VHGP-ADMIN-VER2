@@ -117,7 +117,7 @@ export default function BasicTabs() {
         </Box>
       </Modal>
       {/* End of child modal / pop-up */}
-      <Box sx={{backgroundColor: "white" }}>
+      <Box sx={{backgroundColor: "white"}}>
         {/* Tabs navigation */}
         <Tabs
           value={value}
@@ -125,6 +125,7 @@ export default function BasicTabs() {
           aria-label="basic tabs example"
           orientation="horizontal"
           variant="scrollable"
+          indicatorColor="none"
           style={tabStyle}
         >
           <Tab label="Item One" {...a11yProps(0)} sx={selectedTab}/>

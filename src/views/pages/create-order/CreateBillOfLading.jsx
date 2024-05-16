@@ -7,11 +7,14 @@ import Box from "@mui/material/Box";
 import OrderPage1 from "./OrderPage1";
 import OrderPage2 from "./OrderPage2";
 import OrderPage3 from "./OrderPage3";
-import { Padding } from "@mui/icons-material";
 import { Button, Modal } from "@mui/material";
+
 import zIndex from "@mui/material/styles/zIndex";
 import CreateOrder from "./CreateOrder";
 
+
+
+// Start of tab navigation from mui library
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -44,6 +47,7 @@ function a11yProps(index) {
     "aria-controls": `simple-tabpanel-${index}`,
   };
 }
+// End of tab navigation from mui library
 
 export default function BasicTabs() {
   const [value, setValue] = React.useState(0);

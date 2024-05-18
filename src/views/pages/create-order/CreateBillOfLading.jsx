@@ -9,6 +9,11 @@ import OrderPage2 from "./OrderPage2";
 import OrderPage3 from "./OrderPage3";
 import { Button, Modal } from "@mui/material";
 
+import zIndex from "@mui/material/styles/zIndex";
+import CreateOrder from "./CreateOrder";
+
+
+
 // Start of tab navigation from mui library
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -54,7 +59,7 @@ export default function BasicTabs() {
   const selectedTab = {
     '&.Mui-selected':{
         color:"black",
-        backgroundColor: "white",
+        backgroundColor: "red",
         borderRadius: "0.5rem",
       },
       '&:not(.Mui-selected)': { // Explicitly define styles for non-selected tabs
@@ -64,7 +69,7 @@ export default function BasicTabs() {
   const tabStyle = {
     position: "absolute",
     right: 0,
-    top: "15.7%",
+    top: "13.3%",
     zIndex: 1,
     marginRight: "52px",
     marginLeft: "50px",
@@ -72,37 +77,37 @@ export default function BasicTabs() {
     borderTopRightRadius: "0.5rem",
   }
 
-  //Set open property for modal/pop-up
-  const [open, setOpen] = React.useState(false);
-  const handleOpen = () => {
-    setOpen(true);
-  };
-  const handleClose = () => {
-    setOpen(false);
-  };
+  // //Set open property for modal/pop-up
+  // const [open, setOpen] = React.useState(false);
+  // const handleOpen = () => {
+  //   setOpen(true);
+  // };
+  // const handleClose = () => {
+  //   setOpen(false);
+  // };
   
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    pt: 2,
-    px: 4,
-    pb: 3,
-  };
+  // const style = {
+  //   position: 'absolute',
+  //   top: '50%',
+  //   left: '50%',
+  //   transform: 'translate(-50%, -50%)',
+  //   width: 400,
+  //   bgcolor: 'background.paper',
+  //   border: '2px solid #000',
+  //   boxShadow: 24,
+  //   pt: 2,
+  //   px: 4,
+  //   pb: 3,
+  // };
 
   return (
     
     <Box sx={{ width: "100%", backgroundColor: "white" }}>
 
       {/* Button to open child modal / pop-up */}
-      <Button onClick={handleOpen}>Open Child Modal</Button>
+      {/* <Button onClick={handleOpen}>Open Child Modal</Button> */}
       {/* Child modal / pop-up */}
-      <Modal
+      {/* <Modal
         open={open}
         onClose={handleClose}
         aria-labelledby="child-modal-title"
@@ -115,8 +120,11 @@ export default function BasicTabs() {
           </p>
           <Button onClick={handleClose}>Close Child Modal</Button>
         </Box>
-      </Modal>
+      </Modal> */}
       {/* End of child modal / pop-up */}
+      
+      
+      
       <Box sx={{backgroundColor: "white"}}>
         {/* Tabs navigation */}
         <Tabs

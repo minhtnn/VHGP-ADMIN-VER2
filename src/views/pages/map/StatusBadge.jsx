@@ -4,13 +4,22 @@ import { FiberManualRecord } from "@mui/icons-material";
 
 const StatusBadge = ({ status }) => {
   const getStatusColor = () => {
-    switch (status) {
-      case "Đang Giao Hàng":
+
+    const st = status.toLowerCase();
+    switch (st) {
+      case "đang giao hàng":
+
         return "#4caf50";
-      case "Đang Chờ Đơn":
+      case "đang chờ đơn":
         return "#2196f3";
-      case "Offline":
+      case "0ffline":
         return "#757575";
+      case "đang chờ":
+        return "#2196f3";
+      case "đã hoàn thành":
+        return "#FF6600";
+      case "đã hủy":
+        return "#EE0000";
       default:
         return "black";
     }

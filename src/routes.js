@@ -23,10 +23,11 @@ import DriverManage from './views/pages/drivers/DriverManage.jsx'
 import HubManage from './views/pages/hubs/HubManage.jsx'
 import { ShipperLocation } from './views/pages/map/ShipperLocation.jsx'
 import { Menus } from './views/pages/menus/Menu.jsx'
-import { Order } from './views/pages/orders/Order.jsx'
+// import { Order } from './views/pages/orders/Order.jsx'
 import StoreCategoryManage from './views/pages/store-category/StoreCategoryManage.jsx'
 import { StoreManage } from './views/pages/stores/StoreManage.jsx'
 import CreateBillOfLading from './views/pages/create-order/CreateBillOfLading.jsx'
+import { Order } from './views/pages/ordersManagement/Order.jsx'
 
 const routes = [
   {
@@ -56,6 +57,15 @@ const routes = [
     component: StoreManage,
     layout: '/admin',
   },
+  // {
+  //   path: '/orders',
+  //   name: 'Đơn Hàng',
+  //   icon: 'fa-solid fa-box',
+  //   component: Order,
+  //   layout: '/admin',
+  //   type: 2,
+  // },
+
   {
     path: '/orders',
     name: 'Đơn Hàng',

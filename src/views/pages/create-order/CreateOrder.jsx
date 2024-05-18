@@ -18,15 +18,18 @@ import Select from "react-select";
 import { createOrder } from "../../../apis/orderApiService";
 
 const CreateOrder = ({ navigateToPage }) => {
+
   const { buildingList, storeList } = useContext(AppContext);
 
   const [productInformation, setProductInformation] = useState("");
-
+  const [productInformationState, setProductInformationState] = useState("");
+  const [productInformationMessage, setProductInformationMessage] = useState("");
   const [createOrderDate, setCreateOrderDate] = useState("");
   const [area, setArea] = useState("");
-  const [orderType, setOrderType] = useState("");
+  // const [orderType, setOrderType] = useState("");
+  const [timeCreate, setTimeCreate] = useState("");
   const [timeReceived, setTimeReceived] = useState("");
-  const [shipper, setShipper] = useState("");
+  // const [shipper, setShipper] = useState("");
 
   const [store, setStore] = useState("");
   const [storeState, setStoreState] = useState("");
@@ -39,7 +42,8 @@ const CreateOrder = ({ navigateToPage }) => {
   const [phoneMessage, setPhoneMessage] = useState("");
   const [total, setTotal] = useState("");
   const [totalState, setTotalState] = useState("");
-  const [note, setNote] = useState("");
+  const [noteOfOrder, setNoteOfOrder] = useState("");
+  const [noteOfCustomer, setNoteOfCustomer] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("");
   const [paymentStatusState, setPaymentStatusState] = useState("");
 
@@ -48,56 +52,56 @@ const CreateOrder = ({ navigateToPage }) => {
   const [shipCost, setShipCost] = useState("");
   const [shipCostState, setShipCostState] = useState("");
   const [isLoadingCircle, setIsLoadingCircle] = useState(false);
-  const [areaList, setAreaList] = useState([]);
-  const [shopList, setShopList] = useState([]);
-  const [orderTypeList, setOrderTypeList] = useState([]);
-  const [filteredShopList, setFilteredShopList] = useState([]);
-  const [filteredOrderTypeList, setFilteredOrderTypeList] = useState([]);
+  // const [areaList, setAreaList] = useState([]);
+  // const [shopList, setShopList] = useState([]);
+  // const [orderTypeList, setOrderTypeList] = useState([]);
+  // const [filteredShopList, setFilteredShopList] = useState([]);
+  // const [filteredOrderTypeList, setFilteredOrderTypeList] = useState([]);
 
-  useEffect(() => {
-    // Fetch Area data
-    fetch("https://65e177e7a8583365b3166e9d.mockapi.io/Area")
-      .then((response) => response.json())
-      .then((data) => {
-        setAreaList(data);
-      });
+  // useEffect(() => {
+  //   // Fetch Area data
+  //   fetch("https://65e177e7a8583365b3166e9d.mockapi.io/Area")
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       setAreaList(data);
+  //     });
 
-    // Fetch Shop data
-    fetch("https://65e177e7a8583365b3166e9d.mockapi.io/Shop")
-      .then((response) => response.json())
-      .then((data) => {
-        setShopList(data);
-      });
+  //   // Fetch Shop data
+  //   fetch("https://65e177e7a8583365b3166e9d.mockapi.io/Shop")
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       setShopList(data);
+  //     });
 
-    // Fetch Order Type data
-    fetch("https://66430f913c01a059ea2153cd.mockapi.io/orderType")
-      .then((response) => response.json())
-      .then((data) => {
-        setOrderTypeList(data);
-      });
-  }, []);
-  // Filter shop list when area changes
-  useEffect(() => {
-    if (area) {
-      const filteredShops = shopList.filter(
-        (shop) => shop.idArea === area.value
-      );
-      setFilteredShopList(filteredShops);
-    }
-  }, [area, shopList]);
+  //   // Fetch Order Type data
+  //   fetch("https://66430f913c01a059ea2153cd.mockapi.io/orderType")
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       setOrderTypeList(data);
+  //     });
+  // }, []);
+  // // Filter shop list when area changes
+  // useEffect(() => {
+  //   if (area) {
+  //     const filteredShops = shopList.filter(
+  //       (shop) => shop.idArea === area.value
+  //     );
+  //     setFilteredShopList(filteredShops);
+  //   }
+  // }, [area, shopList]);
 
-  // Filter order type list when store changes
-  useEffect(() => {
-    if (store) {
-      const selectedShop = shopList.find((shop) => shop.idShop === store.value);
-      if (selectedShop) {
-        const filteredOrderTypes = orderTypeList.filter((orderType) =>
-          selectedShop.idType.includes(orderType.idType)
-        );
-        setFilteredOrderTypeList(filteredOrderTypes);
-      }
-    }
-  }, [store, shopList, orderTypeList]);
+  // // Filter order type list when store changes
+  // useEffect(() => {
+  //   if (store) {
+  //     const selectedShop = shopList.find((shop) => shop.idShop === store.value);
+  //     if (selectedShop) {
+  //       const filteredOrderTypes = orderTypeList.filter((orderType) =>
+  //         selectedShop.idType.includes(orderType.idType)
+  //       );
+  //       setFilteredOrderTypeList(filteredOrderTypes);
+  //     }
+  //   }
+  // }, [store, shopList, orderTypeList]);
 
   const customStyles = {
     control: (provided, state) => ({
@@ -174,9 +178,28 @@ const CreateOrder = ({ navigateToPage }) => {
     return false;
   };
 
+  // Get Time and Date current 
+  useEffect(() => {
+    const now = new Date();
+    const formattedDate = now.toISOString().split("T")[0];
+    const formattedTime = now.toTimeString().split(" ")[0].slice(0, 5);
+
+    setCreateOrderDate(formattedDate);
+    setTimeCreate(formattedTime);
+    setTimeReceived(formattedTime);
+  }, []);
+
   const validateCustomStylesForm = () => {
     let valid = true;
 
+    // Product information
+    if (productInformation === "") {
+      valid = false;
+      setProductInformationState("invalid"); 
+    } else {
+      setProductInformationState("valid");
+    }
+    
     // STORE
     if (store === "") {
       valid = false;
@@ -218,9 +241,9 @@ const CreateOrder = ({ navigateToPage }) => {
 
     if (paymentStatus === "") {
       valid = false;
-      setPaymentTypeState("invalid");
+      setPaymentStatusState("invalid");
     } else {
-      setPaymentTypeState("valid");
+      setPaymentStatusState("valid");
     }
 
     if (paymentType === "") {
@@ -256,16 +279,20 @@ const CreateOrder = ({ navigateToPage }) => {
     if (validateCustomStylesForm()) {
       setIsLoadingCircle(true);
       let order = {
-        phoneNumber: phone,
-        total: parseFloat(total),
-        buildingId: building.value,
-        note: note,
-        fullName: name,
-        deliveryTimeId: "1",
+        productInformation: productInformation,
+        dateCreate: createOrderDate,
+        timeCreate: timeCreate, 
+        timeReceived: timeReceived,
         paymentType: paymentType.value,
         paymentStatus: paymentStatus.value,
-
+        total: parseFloat(total),
         shipCost: shipCost,
+        noteOfOrder: noteOfOrder,
+        phoneNumber: phone,
+        fullName: name,
+        buildingId: building.value,
+        noteOfCustomer: noteOfCustomer,
+        // deliveryTimeId: "1",
       };
 
       createOrder(store.value, order)
@@ -279,9 +306,14 @@ const CreateOrder = ({ navigateToPage }) => {
             setName("");
             setPhone("");
             setTotal("");
-            setNote("");
+            setNoteOfOrder("");
+            setNoteOfCustomer("");
             setPaymentType("");
+            setPaymentStatus("");
             setShipCost("");
+            setCreateOrderDate("");
+            setTimeCreate("");
+            setTimeReceived("");
           }
         })
         .catch((error) => {
@@ -318,27 +350,35 @@ const CreateOrder = ({ navigateToPage }) => {
               <div className="col-md-12">
                 <form>
                   <div className="row">
+
                     {/* Product Information */}
                     <div className="col-md-6">
                       <div className="form-group">
-                        <label className="form-control-label">
-                          Thông tin sản phẩm
+                        <label className="form-control-label"> 
+                          Thông tin sản phẩm <span style={{color:"red"}}>*</span>
                         </label>
                         <Input
+                        valid = {productInformationState === "valid"}
+                        invalid = {productInformationState === "invalid"} 
                           className="form-control"
                           type="text"
                           value={productInformation}
-                          onChange={(e) =>
+                          onChange={(e) => { 
                             setProductInformation(e.target.value)
-                          }
+                          }}
                         />
+                        <div className="invalid-feedback">
+                          Thông tin sản phẩm không được để trống
+                        </div>
                       </div>
                     </div>
 
                     {/* Create Order Date */}
                     <div className="col-md-6">
                       <div className="form-group">
-                        <label className="form-control-label">Ngày tạo</label>
+                        <label className="form-control-label">
+                          Ngày tạo đơn <span style={{color: "red"}}>*</span>
+                        </label>
                         <Input
                           className="form-control"
                           type="date"
@@ -352,13 +392,13 @@ const CreateOrder = ({ navigateToPage }) => {
                     <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Thời gian tạo đơn
+                          Thời gian tạo đơn <span style={{color: "red"}}>*</span>
                         </label>
                         <Input
                           className="form-control"
                           type="time"
-                          value={timeReceived}
-                          onChange={(e) => setTimeReceived(e.target.value)}
+                          value={timeCreate}
+                          onChange={(e) => setTimeCreate(e.target.value)}
                         />
                       </div>
                     </div>
@@ -366,7 +406,7 @@ const CreateOrder = ({ navigateToPage }) => {
                     <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Thời gian nhận hàng từ Shop
+                          Thời gian nhận hàng từ Shop <span style={{color: "red"}}>*</span>
                         </label>
                         <Input
                           className="form-control"
@@ -381,7 +421,7 @@ const CreateOrder = ({ navigateToPage }) => {
                     <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Trạng thái thanh toán
+                          Trạng thái thanh toán <span style={{color:"red"}}>*</span>
                         </label>
                         <div
                           className={`${
@@ -413,7 +453,7 @@ const CreateOrder = ({ navigateToPage }) => {
                       </div>
                     </div>
 
-                    {/* TOTAL */}
+                    {/* TOTAL (Giá trị đơn hàng chứa ship) */}
                     <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
@@ -474,7 +514,7 @@ const CreateOrder = ({ navigateToPage }) => {
                     <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Phương Thức thanh toán
+                          Phương Thức thanh toán <span style={{color: "red"}}>*</span>
                         </label>
                         <div
                           className={`${
@@ -518,9 +558,9 @@ const CreateOrder = ({ navigateToPage }) => {
                           className="form-control"
                           type="search"
                           id="example-search-input"
-                          value={`${note}`}
+                          value={`${noteOfOrder}`}
                           onChange={(e) => {
-                            setNote(e.target.value);
+                            setNoteOfOrder(e.target.value);
                           }}
                         />
                       </div>
@@ -722,9 +762,9 @@ const CreateOrder = ({ navigateToPage }) => {
                           className="form-control"
                           type="search"
                           id="example-search-input"
-                          value={`${note}`}
+                          value={`${noteOfCustomer}`}
                           onChange={(e) => {
-                            setNote(e.target.value);
+                            setNoteOfCustomer(e.target.value);
                           }}
                         />
                       </div>

@@ -18,17 +18,24 @@ import Select from "react-select";
 import { createOrder } from "../../../apis/orderApiService";
 
 const CreateOrder = ({ navigateToPage }) => {
-
   const { buildingList, storeList } = useContext(AppContext);
 
   const [productInformation, setProductInformation] = useState("");
   const [productInformationState, setProductInformationState] = useState("");
-  const [productInformationMessage, setProductInformationMessage] = useState("");
+  const [productInformationMessage, setProductInformationMessage] =
+    useState("");
   const [createOrderDate, setCreateOrderDate] = useState("");
+  const [createOrderDateState, setCreateOrderDateState] = useState("");
+  const [createOrderDateMessage, setCreateOrderDateMessage] = useState("");
+
   const [area, setArea] = useState("");
   // const [orderType, setOrderType] = useState("");
   const [timeCreate, setTimeCreate] = useState("");
+  const [timeCreateState, setTimeCreateState] = useState("");
+  const [timeCreateStateMessage, setTimeCreateMessage] = useState("");
   const [timeReceived, setTimeReceived] = useState("");
+  const [timeReceivedState, setTimeReceivedState] = useState("");
+  const [timeReceivedMessage, setTimeReceivedMessage] = useState("");
   // const [shipper, setShipper] = useState("");
 
   const [store, setStore] = useState("");
@@ -37,6 +44,8 @@ const CreateOrder = ({ navigateToPage }) => {
   const [buildingState, setBuildingState] = useState("");
   const [name, setName] = useState("");
   const [nameState, setNameState] = useState("");
+  const [nameMessage, setNameMessage] = useState("");
+  
   const [phone, setPhone] = useState("");
   const [phoneState, setPhoneState] = useState("");
   const [phoneMessage, setPhoneMessage] = useState("");
@@ -178,7 +187,7 @@ const CreateOrder = ({ navigateToPage }) => {
     return false;
   };
 
-  // Get Time and Date current 
+  // Get Time and Date current
   useEffect(() => {
     const now = new Date();
     const formattedDate = now.toISOString().split("T")[0];
@@ -189,17 +198,86 @@ const CreateOrder = ({ navigateToPage }) => {
     setTimeReceived(formattedTime);
   }, []);
 
+   // Hàm định dạng số thành chuỗi với chữ "đ" và theo định dạng 
+   const formatNumber = (number) => {
+    const formattedNumber = parseFloat(number)
+      .toFixed(0)
+      .replace(/\d(?=(\d{3})+$)/g, "$&,") + "đ";
+    return formattedNumber;
+  };
+
+
+  // Check date time not is past
+  const checkDateTime = (date, time) => {
+    const dateTimeStr = `${date}T${time}`;
+    const selectedDateTime = new Date(dateTimeStr);
+    const now = new Date();
+
+    // Kiểm tra xem ngày và thời gian đã chọn có ở quá khứ không
+    if (selectedDateTime < now) {
+      return false;
+    }
+    return true;
+  };
   const validateCustomStylesForm = () => {
     let valid = true;
 
     // Product information
-    if (productInformation === "") {
-      valid = false;
-      setProductInformationState("invalid"); 
-    } else {
-      setProductInformationState("valid");
+    switch (true) {
+      case productInformation.trim() === "":
+        valid = false;
+        setProductInformationState("invalid");
+        setProductInformationMessage("Thông tin sản phẩm không được để trống");
+        break;
+      case productInformation.length > 100:
+        valid = false;
+        setProductInformationState("invalid");
+        setProductInformationMessage(
+          "Thông tin sản phẩm không được vượt quá 100 kí tự"
+        );
+        break;
+      case !/^[A-Za-z0-9\sÀ-ỹ]{1,100}$/.test(productInformation):
+        valid = false;
+        setProductInformationState("invalid");
+        setProductInformationMessage(
+          "Thông tin sản phẩm chỉ chứa kí tự chữ, số và khoảng trắng"
+        );
+        break;
+      default:
+        setProductInformationState("valid");
+        setProductInformationMessage("");
     }
-    
+    // Kiểm tra ngày tạo đơn
+    if (!checkDateTime(createOrderDate, "00:00")) {
+      valid = false;
+      setCreateOrderDateState("invalid");
+      setCreateOrderDateMessage("Ngày tạo đơn không được ở quá khứ");
+    } else {
+      setCreateOrderDateState("valid");
+      setCreateOrderDateMessage("");
+    }
+
+    // Kiểm tra thời gian tạo đơn
+    if (!checkDateTime(createOrderDate, timeCreate)) {
+      valid = false;
+      setTimeCreateState("invalid");
+      setTimeCreateMessage("Thời gian tạo đơn không được ở quá khứ");
+    } else {
+      setTimeCreateState("valid");
+      setTimeCreateMessage("");
+    }
+
+    // Kiểm tra thời gian nhận hàng từ cửa hàng
+    if (!checkDateTime(createOrderDate, timeReceived)) {
+      valid = false;
+      setTimeReceivedState("invalid");
+      setTimeReceivedMessage(
+        "Thời gian nhận hàng từ cửa hàng không được ở quá khứ"
+      );
+    } else {
+      setTimeReceivedState("valid");
+      setTimeReceivedMessage("");
+    }
     // STORE
     if (store === "") {
       valid = false;
@@ -217,11 +295,29 @@ const CreateOrder = ({ navigateToPage }) => {
     }
 
     // NAME
-    if (name === "") {
-      valid = false;
-      setNameState("invalid");
-    } else {
-      setNameState("valid");
+    switch (true) {
+      case name.trim() === "":
+        valid = false;
+        setNameState("invalid");
+        setNameMessage("Tên khách hàng không được để trống");
+        break;
+      case name.length > 50:
+        valid = false;
+        setNameState("invalid");
+        setNameMessage(
+          "Tên khách hàng không được vượt quá 50 kí tự"
+        );
+        break;
+      case !/^[A-Za-z\sÀ-ỹ]{1,50}$/.test(name):
+        valid = false;
+        setNameState("invalid");
+        setNameMessage(
+          "Tên khách hàn chỉ chứa kí tự chữ và khoảng trắng"
+        );
+        break;
+      default:
+        setNameState("valid");
+        setNameMessage("");
     }
 
     // PHONE NUMBER
@@ -281,7 +377,7 @@ const CreateOrder = ({ navigateToPage }) => {
       let order = {
         productInformation: productInformation,
         dateCreate: createOrderDate,
-        timeCreate: timeCreate, 
+        timeCreate: timeCreate,
         timeReceived: timeReceived,
         paymentType: paymentType.value,
         paymentStatus: paymentStatus.value,
@@ -350,26 +446,35 @@ const CreateOrder = ({ navigateToPage }) => {
               <div className="col-md-12">
                 <form>
                   <div className="row">
-
                     {/* Product Information */}
                     <div className="col-md-6">
                       <div className="form-group">
-                        <label className="form-control-label"> 
-                          Thông tin sản phẩm <span style={{color:"red"}}>*</span>
+                        <label className="form-control-label">
+                          Thông tin sản phẩm{" "}
+                          <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
-                        valid = {productInformationState === "valid"}
-                        invalid = {productInformationState === "invalid"} 
+                          valid={productInformationState === "valid"}
+                          invalid={productInformationState === "invalid"}
                           className="form-control"
                           type="text"
                           value={productInformation}
-                          onChange={(e) => { 
-                            setProductInformation(e.target.value)
+                          onChange={(e) => {
+                            setProductInformation(e.target.value);
                           }}
                         />
-                        <div className="invalid-feedback">
-                          Thông tin sản phẩm không được để trống
-                        </div>
+                        {productInformationState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {productInformationMessage}
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -377,7 +482,7 @@ const CreateOrder = ({ navigateToPage }) => {
                     <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Ngày tạo đơn <span style={{color: "red"}}>*</span>
+                          Ngày tạo đơn <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
                           className="form-control"
@@ -385,6 +490,18 @@ const CreateOrder = ({ navigateToPage }) => {
                           value={createOrderDate}
                           onChange={(e) => setCreateOrderDate(e.target.value)}
                         />
+                        {createOrderDateState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {createOrderDateMessage}
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -392,7 +509,8 @@ const CreateOrder = ({ navigateToPage }) => {
                     <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Thời gian tạo đơn <span style={{color: "red"}}>*</span>
+                          Thời gian tạo đơn{" "}
+                          <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
                           className="form-control"
@@ -400,13 +518,26 @@ const CreateOrder = ({ navigateToPage }) => {
                           value={timeCreate}
                           onChange={(e) => setTimeCreate(e.target.value)}
                         />
+                        {timeCreateState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {timeCreateStateMessage}
+                          </div>
+                        )}
                       </div>
                     </div>
                     {/* Time Received */}
                     <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Thời gian nhận hàng từ Shop <span style={{color: "red"}}>*</span>
+                          Thời gian nhận hàng từ Shop{" "}
+                          <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
                           className="form-control"
@@ -414,6 +545,18 @@ const CreateOrder = ({ navigateToPage }) => {
                           value={timeReceived}
                           onChange={(e) => setTimeReceived(e.target.value)}
                         />
+                        {timeReceivedState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {timeReceivedMessage}
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -421,7 +564,8 @@ const CreateOrder = ({ navigateToPage }) => {
                     <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Trạng thái thanh toán <span style={{color:"red"}}>*</span>
+                          Trạng thái thanh toán{" "}
+                          <span style={{ color: "red" }}>*</span>
                         </label>
                         <div
                           className={`${
@@ -482,7 +626,7 @@ const CreateOrder = ({ navigateToPage }) => {
                       </div>
                     </div>
 
-                     {/* SHIP COST */}
+                    {/* SHIP COST */}
                     <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
@@ -508,13 +652,14 @@ const CreateOrder = ({ navigateToPage }) => {
                           Phí dịch vụ không được để trống
                         </div>
                       </div>
-                    </div>     
+                    </div>
 
                     {/* PAYMENT TYPE */}
                     <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Phương Thức thanh toán <span style={{color: "red"}}>*</span>
+                          Phương Thức thanh toán{" "}
+                          <span style={{ color: "red" }}>*</span>
                         </label>
                         <div
                           className={`${
@@ -550,7 +695,7 @@ const CreateOrder = ({ navigateToPage }) => {
                     <div className="col-md-12">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Ghi chú của đơn hàng 
+                          Ghi chú của đơn hàng
                           {/* <span style={{ color: "red" }}>*</span> */}
                         </label>
                         <textarea
@@ -633,9 +778,18 @@ const CreateOrder = ({ navigateToPage }) => {
                             setName(e.target.value);
                           }}
                         />
-                        <div className="invalid-feedback">
-                          Tên không được để trống
-                        </div>
+                        {nameState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {nameMessage}
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -679,8 +833,8 @@ const CreateOrder = ({ navigateToPage }) => {
                     {/* <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">Khu vực</label> */}
-                        {/* Assume areaList is an array of area options */}
-                        {/* <Select
+                    {/* Assume areaList is an array of area options */}
+                    {/* <Select
                           options={areaList.map((area) => ({
                             label: area.nameArea,
                             value: area.idArea,
@@ -734,8 +888,8 @@ const CreateOrder = ({ navigateToPage }) => {
                     {/* <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">Loại Đơn</label> */}
-                        {/* Assume orderTypeList is an array of order type options */}
-                        {/* <Select
+                    {/* Assume orderTypeList is an array of order type options */}
+                    {/* <Select
                           options={filteredOrderTypeList.map((orderType) => ({
                             label: orderType.nameType,
                             value: orderType.idType,
@@ -749,12 +903,11 @@ const CreateOrder = ({ navigateToPage }) => {
                       </div>
                     </div> */}
 
-
                     {/* NOTE OF CUSTOMER */}
                     <div className="col-md-12">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Ghi chú của khách hàng 
+                          Ghi chú của khách hàng
                           {/* <span style={{ color: "red" }}>*</span> */}
                         </label>
                         <textarea

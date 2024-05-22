@@ -31,6 +31,23 @@ export const getListOrder = (
     }
   );
 };
+
+
+
+// Function to get the list of all orders
+export const getListAllOrders = (page = 1, size = 100) => {
+  return axios.get(
+    `${BASE_URL_CORAL_TEAM_VERSION}${ORDER}/orders?pageIndex=${page}&pageSize=${size}`,
+    {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
+
 //https://deliveryvhgp-webapi.azurewebsites.net/api/v1/order-management/orders/report?StartDate=01/01/2023&EndDate=01/02/2023
 export const getOrderReport = (startDate, endDate) => {
   let url = "";
@@ -94,6 +111,8 @@ export const getListOrderByPayment = (payment, page, size) => {
     }
   );
 };
+
+
 
 export const cancelOrder = (OrderId) => {
   return axios.put(

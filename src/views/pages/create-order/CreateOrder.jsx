@@ -15,11 +15,15 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { notify } from "../../../components/Toast/ToastCustom";
 import { postMenu } from "../../../apis/menuApiService";
 import Select from "react-select";
-import { createOrder } from "../../../apis/orderApiService";
+import {
+  createOrder,
+  getListOrder,
+  getListAllOrders,
+} from "../../../apis/orderApiService";
 
-const CreateOrder = ({ navigateToPage }) => {
-  const { buildingList, storeList } = useContext(AppContext);
-
+const CreateOrder = () => {
+  const { buildingList, storeList, orderList } = useContext(AppContext);
+ 
   const [productInformation, setProductInformation] = useState("");
   const [productInformationState, setProductInformationState] = useState("");
   const [productInformationMessage, setProductInformationMessage] =
@@ -29,14 +33,12 @@ const CreateOrder = ({ navigateToPage }) => {
   const [createOrderDateMessage, setCreateOrderDateMessage] = useState("");
 
   const [area, setArea] = useState("");
-  // const [orderType, setOrderType] = useState("");
   const [timeCreate, setTimeCreate] = useState("");
   const [timeCreateState, setTimeCreateState] = useState("");
   const [timeCreateStateMessage, setTimeCreateMessage] = useState("");
   const [timeReceived, setTimeReceived] = useState("");
   const [timeReceivedState, setTimeReceivedState] = useState("");
   const [timeReceivedMessage, setTimeReceivedMessage] = useState("");
-  // const [shipper, setShipper] = useState("");
 
   const [store, setStore] = useState("");
   const [storeState, setStoreState] = useState("");
@@ -45,7 +47,7 @@ const CreateOrder = ({ navigateToPage }) => {
   const [name, setName] = useState("");
   const [nameState, setNameState] = useState("");
   const [nameMessage, setNameMessage] = useState("");
-  
+
   const [phone, setPhone] = useState("");
   const [phoneState, setPhoneState] = useState("");
   const [phoneMessage, setPhoneMessage] = useState("");
@@ -56,62 +58,18 @@ const CreateOrder = ({ navigateToPage }) => {
   const [paymentStatus, setPaymentStatus] = useState("");
   const [paymentStatusState, setPaymentStatusState] = useState("");
 
-  const [paymentType, setPaymentType] = useState("");
-  const [paymentTypeState, setPaymentTypeState] = useState("");
+  const [paymentName, setPaymentName] = useState("");
+  const [paymentNameState, setPaymentNameState] = useState("");
   const [shipCost, setShipCost] = useState("");
   const [shipCostState, setShipCostState] = useState("");
   const [isLoadingCircle, setIsLoadingCircle] = useState(false);
-  // const [areaList, setAreaList] = useState([]);
-  // const [shopList, setShopList] = useState([]);
-  // const [orderTypeList, setOrderTypeList] = useState([]);
-  // const [filteredShopList, setFilteredShopList] = useState([]);
-  // const [filteredOrderTypeList, setFilteredOrderTypeList] = useState([]);
 
-  // useEffect(() => {
-  //   // Fetch Area data
-  //   fetch("https://65e177e7a8583365b3166e9d.mockapi.io/Area")
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       setAreaList(data);
-  //     });
+  const [allOrders, setAllOrders] = useState(null);
+  const [allOrdersState, setAllOrdersState] = useState("");
 
-  //   // Fetch Shop data
-  //   fetch("https://65e177e7a8583365b3166e9d.mockapi.io/Shop")
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       setShopList(data);
-  //     });
-
-  //   // Fetch Order Type data
-  //   fetch("https://66430f913c01a059ea2153cd.mockapi.io/orderType")
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       setOrderTypeList(data);
-  //     });
-  // }, []);
-  // // Filter shop list when area changes
-  // useEffect(() => {
-  //   if (area) {
-  //     const filteredShops = shopList.filter(
-  //       (shop) => shop.idArea === area.value
-  //     );
-  //     setFilteredShopList(filteredShops);
-  //   }
-  // }, [area, shopList]);
-
-  // // Filter order type list when store changes
-  // useEffect(() => {
-  //   if (store) {
-  //     const selectedShop = shopList.find((shop) => shop.idShop === store.value);
-  //     if (selectedShop) {
-  //       const filteredOrderTypes = orderTypeList.filter((orderType) =>
-  //         selectedShop.idType.includes(orderType.idType)
-  //       );
-  //       setFilteredOrderTypeList(filteredOrderTypes);
-  //     }
-  //   }
-  // }, [store, shopList, orderTypeList]);
-
+  useEffect(() => {
+    console.log("Order List from Context:", orderList); // Log order list from context
+  }, [orderList]);
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
@@ -130,17 +88,68 @@ const CreateOrder = ({ navigateToPage }) => {
     }),
   };
 
+  //Assign values to fields from api
+  useEffect(() => {
+    if (allOrders) {
+      const selectedOrder = orderList.find(
+        (order) => order.id === allOrders.value
+      );
+      if (selectedOrder) {
+        setName(selectedOrder.customerName);
+        setPhone(selectedOrder.phone);
+
+        const selectedStore = storeList.find(
+          (store) => store.name === selectedOrder.storeName
+        );
+        setStore(
+          selectedStore
+            ? { label: selectedStore.name, value: selectedStore.id }
+            : null
+        );
+
+        const selectedBuilding = buildingList.find(
+          (building) => building.name === selectedOrder.buildingName
+        );
+        setBuilding(
+          selectedBuilding
+            ? { label: selectedBuilding.name, value: selectedBuilding.id }
+            : null
+        );
+
+        setPaymentStatus({
+          label: getPaymentStatus(selectedOrder.paymentStatus),
+          value: selectedOrder.paymentStatus,
+        });
+        setPaymentName({
+          label: getPaymentName(selectedOrder.paymentName),
+          value: selectedOrder.paymentName,
+        });
+        setTotal(selectedOrder.total);
+        setShipCost(selectedOrder.shipCost);
+        setNoteOfOrder(selectedOrder.note);
+        setNoteOfCustomer(selectedOrder.note);
+      }
+    }
+  }, [allOrders, orderList]);
+  // Ensure orderList is an array before mapping
+  const optionsOrder = Array.isArray(orderList)
+    ? orderList.map((item) => ({
+        label: item.id,
+        value: item.id,
+      }))
+    : [];
+
   const optionsStore = storeList.map((item) => {
     return {
-      label: item.nameShop,
-      value: item.idShop,
+      label: item.name,
+      value: item.id,
     };
   });
 
   const optionsBuilding = buildingList.map((item) => {
     return {
-      label: item.nameArea,
-      value: item.idArea,
+      label: item.name,
+      value: item.id,
     };
   });
 
@@ -150,12 +159,14 @@ const CreateOrder = ({ navigateToPage }) => {
         return "Chưa thanh toán";
       case 1:
         return "Đã thanh toán";
+      case 2:
+        return "Đã huỷ";
       default:
         return "";
     }
   };
 
-  const optionsPaymentStatus = [0, 1].map((item) => {
+  const optionsPaymentStatus = [0, 1, 2].map((item) => {
     return {
       label: getPaymentStatus(item),
       value: item,
@@ -168,12 +179,14 @@ const CreateOrder = ({ navigateToPage }) => {
         return "Thu hộ tiền mặt";
       case 1:
         return "Thu hộ chuyển khoản";
+      case 2:
+        return "Đã thanh toán";
       default:
         return "";
     }
   };
 
-  const optionsPayment = [0, 1].map((item) => {
+  const optionsPaymentName = [0, 1, 2].map((item) => {
     return {
       label: getPaymentName(item),
       value: item,
@@ -198,15 +211,6 @@ const CreateOrder = ({ navigateToPage }) => {
     setTimeReceived(formattedTime);
   }, []);
 
-   // Hàm định dạng số thành chuỗi với chữ "đ" và theo định dạng 
-   const formatNumber = (number) => {
-    const formattedNumber = parseFloat(number)
-      .toFixed(0)
-      .replace(/\d(?=(\d{3})+$)/g, "$&,") + "đ";
-    return formattedNumber;
-  };
-
-
   // Check date time not is past
   const checkDateTime = (date, time) => {
     const dateTimeStr = `${date}T${time}`;
@@ -221,6 +225,14 @@ const CreateOrder = ({ navigateToPage }) => {
   };
   const validateCustomStylesForm = () => {
     let valid = true;
+
+    // All Order
+    if (allOrders === "") {
+      valid = false;
+      setAllOrdersState("invalid");
+    } else {
+      setAllOrdersState("valid");
+    }
 
     // Product information
     switch (true) {
@@ -304,16 +316,12 @@ const CreateOrder = ({ navigateToPage }) => {
       case name.length > 50:
         valid = false;
         setNameState("invalid");
-        setNameMessage(
-          "Tên khách hàng không được vượt quá 50 kí tự"
-        );
+        setNameMessage("Tên khách hàng không được vượt quá 50 kí tự");
         break;
       case !/^[A-Za-z\sÀ-ỹ]{1,50}$/.test(name):
         valid = false;
         setNameState("invalid");
-        setNameMessage(
-          "Tên khách hàn chỉ chứa kí tự chữ và khoảng trắng"
-        );
+        setNameMessage("Tên khách hàn chỉ chứa kí tự chữ và khoảng trắng");
         break;
       default:
         setNameState("valid");
@@ -342,11 +350,11 @@ const CreateOrder = ({ navigateToPage }) => {
       setPaymentStatusState("valid");
     }
 
-    if (paymentType === "") {
+    if (paymentName === "") {
       valid = false;
-      setPaymentTypeState("invalid");
+      setPaymentNameState("invalid");
     } else {
-      setPaymentTypeState("valid");
+      setPaymentNameState("valid");
     }
 
     // TOTAL
@@ -379,7 +387,7 @@ const CreateOrder = ({ navigateToPage }) => {
         dateCreate: createOrderDate,
         timeCreate: timeCreate,
         timeReceived: timeReceived,
-        paymentType: paymentType.value,
+        paymentName: paymentName.value,
         paymentStatus: paymentStatus.value,
         total: parseFloat(total),
         shipCost: shipCost,
@@ -404,7 +412,7 @@ const CreateOrder = ({ navigateToPage }) => {
             setTotal("");
             setNoteOfOrder("");
             setNoteOfCustomer("");
-            setPaymentType("");
+            setPaymentName("");
             setPaymentStatus("");
             setShipCost("");
             setCreateOrderDate("");
@@ -446,24 +454,27 @@ const CreateOrder = ({ navigateToPage }) => {
               <div className="col-md-12">
                 <form>
                   <div className="row">
-                    {/* Product Information */}
-                    <div className="col-md-6">
+                    {/* All Order */}
+                    <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Thông tin sản phẩm{" "}
-                          <span style={{ color: "red" }}>*</span>
+                          Mã đơn hàng <span style={{ color: "red" }}>*</span>
                         </label>
-                        <Input
-                          valid={productInformationState === "valid"}
-                          invalid={productInformationState === "invalid"}
-                          className="form-control"
-                          type="text"
-                          value={productInformation}
-                          onChange={(e) => {
-                            setProductInformation(e.target.value);
-                          }}
-                        />
-                        {productInformationState === "invalid" && (
+                        <div
+                          className={`${
+                            allOrdersState === "invalid" && "error-select"
+                          }`}
+                        >
+                          <Select
+                            options={optionsOrder}
+                            styles={customStyles}
+                            value={allOrders}
+                            onChange={(e) => {
+                              setAllOrders(e);
+                            }}
+                          />
+                        </div>
+                        {allOrdersState === "invalid" && (
                           <div
                             className="invalid"
                             style={{
@@ -472,14 +483,50 @@ const CreateOrder = ({ navigateToPage }) => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            {productInformationMessage}
+                            Mã đơn hàng không được để trống
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* STORE */}
+                    <div className="col-md-3">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Cửa hàng <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <div
+                          className={`${
+                            storeState === "invalid" && "error-select"
+                          }`}
+                        >
+                          <Select
+                            options={optionsStore}
+                            placeholder="Cửa hàng"
+                            styles={customStyles}
+                            value={store}
+                            onChange={(e) => {
+                              setStore(e);
+                            }}
+                          />
+                        </div>
+                        {storeState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            Cửa hàng không được để trống
                           </div>
                         )}
                       </div>
                     </div>
 
                     {/* Create Order Date */}
-                    <div className="col-md-6">
+                    <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
                           Ngày tạo đơn <span style={{ color: "red" }}>*</span>
@@ -532,20 +579,24 @@ const CreateOrder = ({ navigateToPage }) => {
                         )}
                       </div>
                     </div>
-                    {/* Time Received */}
-                    <div className="col-md-3">
+                    {/* Product Information */}
+                    <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Thời gian nhận hàng từ Shop{" "}
+                          Thông tin sản phẩm{" "}
                           <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
+                          valid={productInformationState === "valid"}
+                          invalid={productInformationState === "invalid"}
                           className="form-control"
-                          type="time"
-                          value={timeReceived}
-                          onChange={(e) => setTimeReceived(e.target.value)}
+                          type="text"
+                          value={productInformation}
+                          onChange={(e) => {
+                            setProductInformation(e.target.value);
+                          }}
                         />
-                        {timeReceivedState === "invalid" && (
+                        {productInformationState === "invalid" && (
                           <div
                             className="invalid"
                             style={{
@@ -554,14 +605,47 @@ const CreateOrder = ({ navigateToPage }) => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            {timeReceivedMessage}
+                            {productInformationMessage}
                           </div>
                         )}
                       </div>
                     </div>
 
+                    {/* Address Store */}
+                    {/* <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Địa chỉ cửa hàng{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <Input
+                          valid={nameState === "valid"}
+                          invalid={nameState === "invalid"}
+                          className="form-control"
+                          type="search"
+                          id="example-search-input"
+                          value={`${name}`}
+                          onChange={(e) => {
+                            setName(e.target.value);
+                          }}
+                        />
+                        {nameState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {nameMessage}
+                          </div>
+                        )}
+                      </div>
+                    </div> */}
+
                     {/* PAYMENT Status */}
-                    <div className="col-md-6">
+                    <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
                           Trạng thái thanh toán{" "}
@@ -592,6 +676,43 @@ const CreateOrder = ({ navigateToPage }) => {
                             }}
                           >
                             Trạng thái thanh toán không được để trống
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* PAYMENT NAME */}
+                    <div className="col-md-3">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Phương thức thanh toán{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <div
+                          className={`${
+                            paymentNameState === "invalid" && "error-select"
+                          }`}
+                        >
+                          <Select
+                            options={optionsPaymentName}
+                            placeholder="Thu hộ"
+                            styles={customStyles}
+                            value={paymentName}
+                            onChange={(e) => {
+                              setPaymentName(e);
+                            }}
+                          />
+                        </div>
+                        {paymentNameState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            Phương thức thanh toán không được để trống
                           </div>
                         )}
                       </div>
@@ -654,43 +775,6 @@ const CreateOrder = ({ navigateToPage }) => {
                       </div>
                     </div>
 
-                    {/* PAYMENT TYPE */}
-                    <div className="col-md-6">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Phương Thức thanh toán{" "}
-                          <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <div
-                          className={`${
-                            paymentTypeState === "invalid" && "error-select"
-                          }`}
-                        >
-                          <Select
-                            options={optionsPayment}
-                            placeholder="Thu hộ"
-                            styles={customStyles}
-                            value={paymentType}
-                            onChange={(e) => {
-                              setPaymentType(e);
-                            }}
-                          />
-                        </div>
-                        {paymentTypeState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            Phương thức thanh toán không được để trống
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
                     {/* NOTE OF ORDER */}
                     <div className="col-md-12">
                       <div className="form-group">
@@ -729,38 +813,6 @@ const CreateOrder = ({ navigateToPage }) => {
                       </CardHeader>
                     </div>
 
-                    {/* PHONE NUMBER */}
-                    <div className="col-md-3">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Số điện thoại <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <Input
-                          valid={phoneState === "valid"}
-                          invalid={phoneState === "invalid"}
-                          className="form-control"
-                          type="search"
-                          id="example-search-input"
-                          value={`${phone}`}
-                          onChange={(e) => {
-                            setPhone(e.target.value);
-                          }}
-                        />
-                        {phoneState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            {phoneMessage}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
                     {/* FULL NAME */}
                     <div className="col-md-3">
                       <div className="form-group">
@@ -788,6 +840,38 @@ const CreateOrder = ({ navigateToPage }) => {
                             }}
                           >
                             {nameMessage}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* PHONE NUMBER */}
+                    <div className="col-md-3">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Số điện thoại <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <Input
+                          valid={phoneState === "valid"}
+                          invalid={phoneState === "invalid"}
+                          className="form-control"
+                          type="search"
+                          id="example-search-input"
+                          value={`${phone}`}
+                          onChange={(e) => {
+                            setPhone(e.target.value);
+                          }}
+                        />
+                        {phoneState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {phoneMessage}
                           </div>
                         )}
                       </div>
@@ -828,80 +912,6 @@ const CreateOrder = ({ navigateToPage }) => {
                         )}
                       </div>
                     </div>
-
-                    {/* Area */}
-                    {/* <div className="col-md-6">
-                      <div className="form-group">
-                        <label className="form-control-label">Khu vực</label> */}
-                    {/* Assume areaList is an array of area options */}
-                    {/* <Select
-                          options={areaList.map((area) => ({
-                            label: area.nameArea,
-                            value: area.idArea,
-                          }))}
-                          placeholder="Chọn khu vực"
-                          value={area}
-                          onChange={(selectedOption) => setArea(selectedOption)}
-                        />
-                      </div>
-                    </div> */}
-
-                    {/* STORE */}
-                    {/* <div className="col-md-6">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Cửa hàng <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <div
-                          className={`${
-                            storeState === "invalid" && "error-select"
-                          }`}
-                        >
-                          <Select
-                            options={filteredShopList.map((shop) => ({
-                              label: shop.nameShop,
-                              value: shop.idShop,
-                            }))}
-                            placeholder="Cửa hàng"
-                            value={store}
-                            onChange={(selectedOption) =>
-                              setStore(selectedOption)
-                            }
-                          />
-                        </div>
-                        {storeState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            Cửa hàng không được để trống
-                          </div>
-                        )}
-                      </div>
-                    </div> */}
-
-                    {/* Order Type */}
-                    {/* <div className="col-md-6">
-                      <div className="form-group">
-                        <label className="form-control-label">Loại Đơn</label> */}
-                    {/* Assume orderTypeList is an array of order type options */}
-                    {/* <Select
-                          options={filteredOrderTypeList.map((orderType) => ({
-                            label: orderType.nameType,
-                            value: orderType.idType,
-                          }))}
-                          placeholder="Chọn loại đơn"
-                          value={orderType}
-                          onChange={(selectedOption) =>
-                            setOrderType(selectedOption)
-                          }
-                        />
-                      </div>
-                    </div> */}
 
                     {/* NOTE OF CUSTOMER */}
                     <div className="col-md-12">

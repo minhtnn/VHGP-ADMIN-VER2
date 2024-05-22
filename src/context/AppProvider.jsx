@@ -9,7 +9,7 @@ import {
   getListStores,
 } from '../apis/storeApiService'
 import { notify } from '../components/Toast/ToastCustom'
-
+import {getListAllOrders} from '../apis/orderApiService';
 export const AppContext = React.createContext()
 
 export default function AppProvider({ children }) {
@@ -65,6 +65,21 @@ export default function AppProvider({ children }) {
 
   const [storeList, setStoreList] = useState([])
 
+  const [orderList, setOrderList] = useState([])
+
+  const handleGetListAllOrder = () => {
+    getListAllOrders(1, 100)
+      .then((res) => {
+        console.log("API response:", res.data); // Log API response
+        const orders = res.data.data; // Access the correct data field
+        setOrderList(Array.isArray(orders) ? orders : []); // Ensure orders is an array
+        console.log("Order List State:", orders); // Log state after setting it
+      })
+      .catch((error) => console.error("Error fetching orders:", error));
+  };
+
+
+
   const handleGetListCategory = () => {
     getListCategorys(1, 100).then((res) => {
       const categorys = res.data
@@ -92,20 +107,24 @@ export default function AppProvider({ children }) {
       .catch((error) => console.log(error))
   }
 
+ 
   useEffect(() => {
     getListBuilding(1, 100)
       .then((res) => {
         const buildings = res.data
         setBuildingList(
-          buildings.sort(function (a, b) {
-            console.log()
-            return parseInt(a.id.split('b')[1]) - parseInt(b.id.split('b')[1])
-          })
+          buildings
+          // buildings.sort(function (a, b) {
+          //   console.log()
+          //   return parseInt(a.id.split('b')[1]) - parseInt(b.id.split('b')[1])
+          // })
         )
       })
       .catch((error) => {
         notify('Đã xảy ra lỗi gì đó!!', 'Error')
       })
+      handleGetListAllOrder()
+
     handleGetListCategory()
     handleGetListArea()
     handleGetListStore()
@@ -127,6 +146,8 @@ export default function AppProvider({ children }) {
   return (
     <AppContext.Provider
       value={{
+        orderList,
+        setOrderList,
         openModal,
         setOpenModal,
         user,

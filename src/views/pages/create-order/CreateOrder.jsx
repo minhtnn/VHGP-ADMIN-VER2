@@ -15,15 +15,11 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { notify } from "../../../components/Toast/ToastCustom";
 import { postMenu } from "../../../apis/menuApiService";
 import Select from "react-select";
-import {
-  createOrder,
-  getListOrder,
-  getListAllOrders,
-} from "../../../apis/orderApiService";
+import { createOrder } from "../../../apis/orderApiService";
 
 const CreateOrder = () => {
   const { buildingList, storeList, orderList } = useContext(AppContext);
- 
+  const [customOrder, setCustomOrder] = useState("");
   const [productInformation, setProductInformation] = useState("");
   const [productInformationState, setProductInformationState] = useState("");
   const [productInformationMessage, setProductInformationMessage] =
@@ -32,13 +28,14 @@ const CreateOrder = () => {
   const [createOrderDateState, setCreateOrderDateState] = useState("");
   const [createOrderDateMessage, setCreateOrderDateMessage] = useState("");
 
-  const [area, setArea] = useState("");
+  const [modeId, setModeId] = useState(""); // loại vận chuyển
+  const [modeIdState, setModeIdState] = useState("");
+  const [modeIdMessage, setModeIdMessage] = useState("");
+
   const [timeCreate, setTimeCreate] = useState("");
   const [timeCreateState, setTimeCreateState] = useState("");
   const [timeCreateStateMessage, setTimeCreateMessage] = useState("");
   const [timeReceived, setTimeReceived] = useState("");
-  const [timeReceivedState, setTimeReceivedState] = useState("");
-  const [timeReceivedMessage, setTimeReceivedMessage] = useState("");
 
   const [store, setStore] = useState("");
   const [storeState, setStoreState] = useState("");
@@ -70,6 +67,7 @@ const CreateOrder = () => {
   useEffect(() => {
     console.log("Order List from Context:", orderList); // Log order list from context
   }, [orderList]);
+
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
@@ -124,6 +122,7 @@ const CreateOrder = () => {
           label: getPaymentName(selectedOrder.paymentName),
           value: selectedOrder.paymentName,
         });
+        setModeId(selectedOrder.modeId);
         setTotal(selectedOrder.total);
         setShipCost(selectedOrder.shipCost);
         setNoteOfOrder(selectedOrder.note);
@@ -150,6 +149,26 @@ const CreateOrder = () => {
     return {
       label: item.name,
       value: item.id,
+    };
+  });
+
+  const getModeId = (item) => {
+    switch (item) {
+      case 1:
+        return "Từ cửa hàng đến hub";
+      case 2:
+        return "Từ hub đến khách hàng";
+      case 3:
+        return "Từ cửa hàng đến khách hàng";
+      default:
+        return "";
+    }
+  };
+
+  const optionsModeId = [1, 2, 3].map((item) => {
+    return {
+      label: getModeId(item),
+      value: item,
     };
   });
 
@@ -234,6 +253,13 @@ const CreateOrder = () => {
       setAllOrdersState("valid");
     }
 
+    // Shipping Type
+    if (modeId === "") {
+      valid = false;
+      setModeIdState("invalid");
+    } else {
+      setModeIdState("valid");
+    }
     // Product information
     switch (true) {
       case productInformation.trim() === "":
@@ -279,17 +305,6 @@ const CreateOrder = () => {
       setTimeCreateMessage("");
     }
 
-    // Kiểm tra thời gian nhận hàng từ cửa hàng
-    if (!checkDateTime(createOrderDate, timeReceived)) {
-      valid = false;
-      setTimeReceivedState("invalid");
-      setTimeReceivedMessage(
-        "Thời gian nhận hàng từ cửa hàng không được ở quá khứ"
-      );
-    } else {
-      setTimeReceivedState("valid");
-      setTimeReceivedMessage("");
-    }
     // STORE
     if (store === "") {
       valid = false;
@@ -386,9 +401,10 @@ const CreateOrder = () => {
         productInformation: productInformation,
         dateCreate: createOrderDate,
         timeCreate: timeCreate,
-        timeReceived: timeReceived,
+        // timeReceived: timeReceived,
         paymentName: paymentName.value,
         paymentStatus: paymentStatus.value,
+        modeId: modeId.value,
         total: parseFloat(total),
         shipCost: shipCost,
         noteOfOrder: noteOfOrder,
@@ -396,7 +412,7 @@ const CreateOrder = () => {
         fullName: name,
         buildingId: building.value,
         noteOfCustomer: noteOfCustomer,
-        // deliveryTimeId: "1",
+        deliveryTimeId: "6",
       };
 
       createOrder(store.value, order)
@@ -414,10 +430,11 @@ const CreateOrder = () => {
             setNoteOfCustomer("");
             setPaymentName("");
             setPaymentStatus("");
+            setModeId("");
             setShipCost("");
             setCreateOrderDate("");
             setTimeCreate("");
-            setTimeReceived("");
+            // setTimeReceived("");
           }
         })
         .catch((error) => {
@@ -471,6 +488,26 @@ const CreateOrder = () => {
                             value={allOrders}
                             onChange={(e) => {
                               setAllOrders(e);
+                            }}
+                            isClearable
+                            isSearchable
+                            onCreateOption={(inputValue) => {
+                              setAllOrders({
+                                label: inputValue,
+                                value: inputValue,
+                              });
+                            }}
+                            onBlur={() => {
+                              if (customOrder && !allOrders) {
+                                setAllOrders({
+                                  label: customOrder,
+                                  value: customOrder,
+                                });
+                              }
+                            }}
+                            inputValue={customOrder}
+                            onInputChange={(inputValue) => {
+                              setCustomOrder(inputValue);
                             }}
                           />
                         </div>
@@ -644,80 +681,6 @@ const CreateOrder = () => {
                       </div>
                     </div> */}
 
-                    {/* PAYMENT Status */}
-                    <div className="col-md-3">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Trạng thái thanh toán{" "}
-                          <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <div
-                          className={`${
-                            paymentStatusState === "invalid" && "error-select"
-                          }`}
-                        >
-                          <Select
-                            options={optionsPaymentStatus}
-                            placeholder="Chưa thanh toán"
-                            styles={customStyles}
-                            value={paymentStatus}
-                            onChange={(e) => {
-                              setPaymentStatus(e);
-                            }}
-                          />
-                        </div>
-                        {paymentStatusState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            Trạng thái thanh toán không được để trống
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* PAYMENT NAME */}
-                    <div className="col-md-3">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Phương thức thanh toán{" "}
-                          <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <div
-                          className={`${
-                            paymentNameState === "invalid" && "error-select"
-                          }`}
-                        >
-                          <Select
-                            options={optionsPaymentName}
-                            placeholder="Thu hộ"
-                            styles={customStyles}
-                            value={paymentName}
-                            onChange={(e) => {
-                              setPaymentName(e);
-                            }}
-                          />
-                        </div>
-                        {paymentNameState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            Phương thức thanh toán không được để trống
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
                     {/* TOTAL (Giá trị đơn hàng chứa ship) */}
                     <div className="col-md-3">
                       <div className="form-group">
@@ -772,6 +735,114 @@ const CreateOrder = () => {
                         <div className="invalid-feedback">
                           Phí dịch vụ không được để trống
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Shipping Type */}
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Loại giao hàng <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <div
+                          className={`${
+                            modeIdState === "invalid" && "error-select"
+                          }`}
+                        >
+                          <Select
+                            options={optionsModeId}
+                            placeholder=""
+                            styles={customStyles}
+                            value={modeId}
+                            onChange={(e) => {
+                              setModeId(e);
+                            }}
+                          />
+                        </div>
+                        {modeIdState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            Trạng thái thanh toán không được để trống
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {/* PAYMENT Status */}
+                    <div className="col-md-3">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Trạng thái thanh toán{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <div
+                          className={`${
+                            paymentStatusState === "invalid" && "error-select"
+                          }`}
+                        >
+                          <Select
+                            options={optionsPaymentStatus}
+                            placeholder="Chưa thanh toán"
+                            styles={customStyles}
+                            value={paymentStatus}
+                            onChange={(e) => {
+                              setPaymentStatus(e);
+                            }}
+                          />
+                        </div>
+                        {paymentStatusState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            Trạng thái thanh toán không được để trống
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {/* PAYMENT NAME */}
+                    <div className="col-md-3">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Phương thức thanh toán{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <div
+                          className={`${
+                            paymentNameState === "invalid" && "error-select"
+                          }`}
+                        >
+                          <Select
+                            options={optionsPaymentName}
+                            placeholder="Thu hộ"
+                            styles={customStyles}
+                            value={paymentName}
+                            onChange={(e) => {
+                              setPaymentName(e);
+                            }}
+                          />
+                        </div>
+                        {paymentNameState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            Phương thức thanh toán không được để trống
+                          </div>
+                        )}
                       </div>
                     </div>
 

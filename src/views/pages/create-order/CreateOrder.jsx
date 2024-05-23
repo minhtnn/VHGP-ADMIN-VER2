@@ -16,8 +16,11 @@ import { notify } from "../../../components/Toast/ToastCustom";
 import { postMenu } from "../../../apis/menuApiService";
 import Select from "react-select";
 import { createOrder } from "../../../apis/orderApiService";
+import axios from "axios";
 
 const CreateOrder = () => {
+  const [commandBoxValue, setCommandBoxValue] = useState("");
+
   const { buildingList, storeList, orderList } = useContext(AppContext);
   const [customOrder, setCustomOrder] = useState("");
   const [productInformation, setProductInformation] = useState("");
@@ -28,9 +31,9 @@ const CreateOrder = () => {
   const [createOrderDateState, setCreateOrderDateState] = useState("");
   const [createOrderDateMessage, setCreateOrderDateMessage] = useState("");
 
-  const [modeId, setModeId] = useState(""); // loại vận chuyển
-  const [modeIdState, setModeIdState] = useState("");
-  const [modeIdMessage, setModeIdMessage] = useState("");
+  // const [modeId, setModeId] = useState(""); // loại vận chuyển
+  // const [modeIdState, setModeIdState] = useState("");
+  // const [modeIdMessage, setModeIdMessage] = useState("");
 
   const [timeCreate, setTimeCreate] = useState("");
   const [timeCreateState, setTimeCreateState] = useState("");
@@ -64,10 +67,58 @@ const CreateOrder = () => {
   const [allOrders, setAllOrders] = useState(null);
   const [allOrdersState, setAllOrdersState] = useState("");
 
+  const handleCommandSubmit = async () => {
+    setIsLoadingCircle(true);
+
+    try {
+        const response = await axios.post(
+            `https://api.vhgp.net/api/v1/suppliers/RenderBillOfLading?text=${encodeURIComponent(commandBoxValue)}`
+        );
+
+        if (response.data.statusCode === "Successful") {
+            const data = response.data.data;
+
+            // Find the matching store and building from the options
+            const storeOption = optionsStore.find(option => option.value === data.storeId);
+            const buildingOption = optionsBuilding.find(option => option.value === data.buildingId);
+            const paymentNameOption = optionsPaymentName.find(option => option.value === data.paymentType);
+            const paymentStatusOption = optionsPaymentStatus.find(option => option.value === data.paymentStatus);
+
+            setStore(storeOption || "");
+            setPhone(data.phoneNumber || "");
+            setTotal(data.total ? data.total.toString() : "");
+            setBuilding(buildingOption || "");
+            setNoteOfCustomer(data.customerNote || "");
+            setNoteOfOrder(data.orderNote || "");
+            setName(data.fullName || "");
+            setShipCost(data.shipCost ? data.shipCost.toString() : "");
+            setPaymentName(paymentNameOption || "");
+            setPaymentStatus(paymentStatusOption || "");
+
+            // Set other fields if they are part of the response data
+            if (data.productInformation) setProductInformation(data.productInformation);
+            if (data.dateCreate) setCreateOrderDate(data.dateCreate);
+            if (data.timeCreate) setTimeCreate(data.timeCreate);
+        }
+        setIsLoadingCircle(false);
+    } catch (error) {
+        console.error(error);
+        notify("Đã xảy ra lỗi gì đó!!", "Error");
+        setIsLoadingCircle(false);
+    }
+};
+
+
+
   useEffect(() => {
     console.log("Order List from Context:", orderList); // Log order list from context
   }, [orderList]);
-
+  // useEffect(() => {
+  //   console.log("Selected Mode ID:", modeId);
+  // }, [modeId]);
+  // useEffect(() => {
+  //   console.log("Paymenasd statsyu:", paymentStatus);
+  // }, [paymentStatus]);
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
@@ -87,49 +138,55 @@ const CreateOrder = () => {
   };
 
   //Assign values to fields from api
-  useEffect(() => {
-    if (allOrders) {
-      const selectedOrder = orderList.find(
-        (order) => order.id === allOrders.value
-      );
-      if (selectedOrder) {
-        setName(selectedOrder.customerName);
-        setPhone(selectedOrder.phone);
+  // useEffect(() => {
+  //   if (allOrders) {
+  //     const selectedOrder = orderList.find(
+  //       (order) => order.id === allOrders.value
+  //     );
+  //     if (selectedOrder) {
+  //       setName(selectedOrder.customerName);
+  //       setPhone(selectedOrder.phone);
 
-        const selectedStore = storeList.find(
-          (store) => store.name === selectedOrder.storeName
-        );
-        setStore(
-          selectedStore
-            ? { label: selectedStore.name, value: selectedStore.id }
-            : null
-        );
+  //       const selectedStore = storeList.find(
+  //         (store) => store.name === selectedOrder.storeName
+  //       );
+  //       setStore(
+  //         selectedStore
+  //           ? { label: selectedStore.name, value: selectedStore.id }
+  //           : null
+  //       );
 
-        const selectedBuilding = buildingList.find(
-          (building) => building.name === selectedOrder.buildingName
-        );
-        setBuilding(
-          selectedBuilding
-            ? { label: selectedBuilding.name, value: selectedBuilding.id }
-            : null
-        );
+  //       const selectedBuilding = buildingList.find(
+  //         (building) => building.name === selectedOrder.buildingName
+  //       );
+  //       setBuilding(
+  //         selectedBuilding
+  //           ? { label: selectedBuilding.name, value: selectedBuilding.id }
+  //           : null
+  //       );
 
-        setPaymentStatus({
-          label: getPaymentStatus(selectedOrder.paymentStatus),
-          value: selectedOrder.paymentStatus,
-        });
-        setPaymentName({
-          label: getPaymentName(selectedOrder.paymentName),
-          value: selectedOrder.paymentName,
-        });
-        setModeId(selectedOrder.modeId);
-        setTotal(selectedOrder.total);
-        setShipCost(selectedOrder.shipCost);
-        setNoteOfOrder(selectedOrder.note);
-        setNoteOfCustomer(selectedOrder.note);
-      }
-    }
-  }, [allOrders, orderList]);
+  //       setPaymentStatus({
+  //         label: getPaymentStatus(selectedOrder.paymentStatus),
+  //         value: selectedOrder.paymentStatus,
+  //       });
+  //       setPaymentName({
+  //         label: getPaymentName(selectedOrder.paymentName),
+  //         value: selectedOrder.paymentName,
+  //       });
+  //       // setModeId({
+  //       //   label: getModeId(selectedOrder.modeId),
+  //       //   value: selectedOrder.modeId.toString(), // Chuyển đổi giá trị sang chuỗi
+  //       // });
+
+  //       setTotal(selectedOrder.total);
+  //       setShipCost(selectedOrder.shipCost);
+  //       setNoteOfOrder(selectedOrder.orderNote);
+  //       setNoteOfCustomer(selectedOrder.customerNote);
+  //     }
+  //   }
+  // }, [allOrders, orderList]);
+
+
   // Ensure orderList is an array before mapping
   const optionsOrder = Array.isArray(orderList)
     ? orderList.map((item) => ({
@@ -152,25 +209,23 @@ const CreateOrder = () => {
     };
   });
 
-  const getModeId = (item) => {
-    switch (item) {
-      case 1:
-        return "Từ cửa hàng đến hub";
-      case 2:
-        return "Từ hub đến khách hàng";
-      case 3:
-        return "Từ cửa hàng đến khách hàng";
-      default:
-        return "";
-    }
-  };
+  // const getModeId = (item) => {
+  //   switch (item) {
+  //     case 0:
+  //       return "Từ cửa hàng đến hub";
+  //     case 1:
+  //       return "Từ hub đến khách hàng";
+  //     case 2:
+  //       return "Từ cửa hàng đến khách hàng";
+  //     default:
+  //       return "";
+  //   }
+  // };
 
-  const optionsModeId = [1, 2, 3].map((item) => {
-    return {
-      label: getModeId(item),
-      value: item,
-    };
-  });
+  // const optionsModeId = [0, 1, 2].map((item) => ({
+  //   label: getModeId(item),
+  //   value: item,
+  // }));
 
   const getPaymentStatus = (item) => {
     switch (item) {
@@ -253,13 +308,14 @@ const CreateOrder = () => {
       setAllOrdersState("valid");
     }
 
-    // Shipping Type
-    if (modeId === "") {
-      valid = false;
-      setModeIdState("invalid");
-    } else {
-      setModeIdState("valid");
-    }
+    //ModeId
+    //  if (modeId.value === "") { // Kiểm tra giá trị value của modeId
+    //   valid = false;
+    //   setModeIdState("invalid");
+    // } else {
+    //   setModeIdState("valid");
+    // }
+
     // Product information
     switch (true) {
       case productInformation.trim() === "":
@@ -404,7 +460,7 @@ const CreateOrder = () => {
         // timeReceived: timeReceived,
         paymentName: paymentName.value,
         paymentStatus: paymentStatus.value,
-        modeId: modeId.value,
+        // modeId: modeId.value,
         total: parseFloat(total),
         shipCost: shipCost,
         noteOfOrder: noteOfOrder,
@@ -430,7 +486,7 @@ const CreateOrder = () => {
             setNoteOfCustomer("");
             setPaymentName("");
             setPaymentStatus("");
-            setModeId("");
+            // setModeId("");
             setShipCost("");
             setCreateOrderDate("");
             setTimeCreate("");
@@ -450,6 +506,70 @@ const CreateOrder = () => {
       <SimpleHeader name="Tạo vận đơn" parentName="Quản Lý" />
       <Container className="mt--6" fluid>
         <Row>
+
+
+          {/* Command Box */}
+          <div className="col-md-12" style={{ marginBottom: "-20px" }}>
+            <div className="form-group">
+              <label className="form-control-label">
+                Hộp lệnh
+                <span style={{ color: "red" }}> * </span> 
+              </label>
+              <textarea
+                rows={2}
+                className="form-control"
+                type="search"
+                id="example-search-input"
+                value={commandBoxValue}
+            onChange={(e) => {
+              setCommandBoxValue(e.target.value);
+            }}
+              />
+                <span style={{ color: "grey", fontSize:"13px" }}
+                >Store Id_Số điện thoại_Total_Building Name_Customer Note_Order Note_Tên khách hàng_Giá ship_Delivery Time_Loại thanh toán
+                </span>
+
+            </div>
+          </div>
+
+          {/* COMMAND BUTTON */}
+      <Col className="mt-1  text-md-right mb-4" lg="12" xs="5">
+        <Button
+          onClick={handleCommandSubmit}
+          className="btn-neutral"
+          color="default"
+          size="lg"
+          disabled={isLoadingCircle}
+          style={{
+            background: "var(--primary)",
+            color: "#000",
+            padding: "0.4rem 0.5rem",
+          }}
+        >
+          <div
+            className="flex"
+            style={{
+              alignItems: "center",
+              width: 99,
+              justifyContent: "center",
+            }}
+          >
+            {isLoadingCircle ? (
+              <Spinner
+                style={{
+                  color: "#000",
+                  height: 25,
+                  width: 25,
+                  margin: "auto",
+                }}
+              />
+            ) : (
+              "Gửi"
+            )}
+          </div>
+        </Button>
+      </Col>
+
           <div className="col-lg-12">
             <Card>
               {/* TITLE dơn hàng */}
@@ -738,11 +858,12 @@ const CreateOrder = () => {
                       </div>
                     </div>
 
-                    {/* Shipping Type */}
+                    {/* Shipping Type
                     <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Loại giao hàng <span style={{ color: "red" }}>*</span>
+                          Loại giao hàng {""}
+                           <span style={{ color: "red" }}>*</span>
                         </label>
                         <div
                           className={`${
@@ -753,9 +874,9 @@ const CreateOrder = () => {
                             options={optionsModeId}
                             placeholder=""
                             styles={customStyles}
-                            value={modeId}
+                            value={modeId} 
                             onChange={(e) => {
-                              setModeId(e);
+                              setModeId(e); 
                             }}
                           />
                         </div>
@@ -768,13 +889,14 @@ const CreateOrder = () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            Trạng thái thanh toán không được để trống
+                            Trạng thái giao hàng không được để trống
                           </div>
                         )}
                       </div>
-                    </div>
+                    </div> */}
+
                     {/* PAYMENT Status */}
-                    <div className="col-md-3">
+                    <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
                           Trạng thái thanh toán{" "}
@@ -810,7 +932,7 @@ const CreateOrder = () => {
                       </div>
                     </div>
                     {/* PAYMENT NAME */}
-                    <div className="col-md-3">
+                    <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
                           Phương thức thanh toán{" "}

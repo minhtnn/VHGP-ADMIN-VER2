@@ -20,105 +20,165 @@ import axios from "axios";
 
 const CreateOrder = () => {
   const [commandBoxValue, setCommandBoxValue] = useState("");
+  const [commandBoxValueState, setCommandBoxValueState] = useState("");
+  const [commandBoxValueMessage, setCommandBoxValueMessage] = useState("");
+  const [commandBoxStatus, setCommandBoxStatus] = useState("");
 
-  const { buildingList, storeList, orderList } = useContext(AppContext);
-  const [customOrder, setCustomOrder] = useState("");
+  const { buildingList, storeList } = useContext(AppContext);
+
   const [productInformation, setProductInformation] = useState("");
   const [productInformationState, setProductInformationState] = useState("");
   const [productInformationMessage, setProductInformationMessage] =
     useState("");
-  const [createOrderDate, setCreateOrderDate] = useState("");
-  const [createOrderDateState, setCreateOrderDateState] = useState("");
-  const [createOrderDateMessage, setCreateOrderDateMessage] = useState("");
 
-  // const [modeId, setModeId] = useState(""); // loại vận chuyển
-  // const [modeIdState, setModeIdState] = useState("");
-  // const [modeIdMessage, setModeIdMessage] = useState("");
-
-  const [timeCreate, setTimeCreate] = useState("");
-  const [timeCreateState, setTimeCreateState] = useState("");
-  const [timeCreateStateMessage, setTimeCreateMessage] = useState("");
   const [timeReceived, setTimeReceived] = useState("");
+  const [timeReceivedState, setTimeReceivedState] = useState("");
+  const [timeReceivedMessage, setTimeReceivedMessage] = useState("");
+  const [timeDelivery, setTimeDelivery] = useState("");
+  const [timeDeliveryState, setTimeDeliveryState] = useState("");
+  const [timeDeliveryMessage, setTimeDeliveryMessage] = useState("");
 
   const [store, setStore] = useState("");
   const [storeState, setStoreState] = useState("");
+  const [storeMessage, setStoreMessage] = useState("");
   const [building, setBuilding] = useState("");
   const [buildingState, setBuildingState] = useState("");
+  const [buildingMessage, setBuildingMessage] = useState("");
+
   const [name, setName] = useState("");
   const [nameState, setNameState] = useState("");
   const [nameMessage, setNameMessage] = useState("");
-
   const [phone, setPhone] = useState("");
   const [phoneState, setPhoneState] = useState("");
   const [phoneMessage, setPhoneMessage] = useState("");
+
   const [total, setTotal] = useState("");
   const [totalState, setTotalState] = useState("");
+  const [totalMessage, setTotalMessage] = useState("");
+  const [shipCost, setShipCost] = useState("");
+  const [shipCostState, setShipCostState] = useState("");
+  const [shipCostMessage, setShipCostMessage] = useState("");
+
   const [noteOfOrder, setNoteOfOrder] = useState("");
   const [noteOfCustomer, setNoteOfCustomer] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState("");
-  const [paymentStatusState, setPaymentStatusState] = useState("");
 
   const [paymentName, setPaymentName] = useState("");
   const [paymentNameState, setPaymentNameState] = useState("");
-  const [shipCost, setShipCost] = useState("");
-  const [shipCostState, setShipCostState] = useState("");
   const [isLoadingCircle, setIsLoadingCircle] = useState(false);
+  
+  const handlePaste = (e) => {
+    // Ngăn chặn hành động mặc định của sự kiện paste
+    e.preventDefault();
+    // Lấy dữ liệu được dán vào
+    const pastedData = e.clipboardData.getData("text");
+    // Xử lý dữ liệu và cập nhật các trường dữ liệu
+    parseCommand(pastedData);
+    // Kiểm tra tính hợp lệ của các trường dữ liệu và cập nhật trạng thái
+    validateCustomStylesForm();
+  };
+  
 
-  const [allOrders, setAllOrders] = useState(null);
-  const [allOrdersState, setAllOrdersState] = useState("");
+  const handleCommandChange = (e) => {
+    const value = e.target.value;
+    setCommandBoxValue(value);
+    parseCommand(value);
+    validateCustomStylesForm();
+  };
 
-  const handleCommandSubmit = async () => {
-    setIsLoadingCircle(true);
-
-    try {
-        const response = await axios.post(
-            `https://api.vhgp.net/api/v1/suppliers/RenderBillOfLading?text=${encodeURIComponent(commandBoxValue)}`
-        );
-
-        if (response.data.statusCode === "Successful") {
-            const data = response.data.data;
-
-            // Find the matching store and building from the options
-            const storeOption = optionsStore.find(option => option.value === data.storeId);
-            const buildingOption = optionsBuilding.find(option => option.value === data.buildingId);
-            const paymentNameOption = optionsPaymentName.find(option => option.value === data.paymentType);
-            const paymentStatusOption = optionsPaymentStatus.find(option => option.value === data.paymentStatus);
-
-            setStore(storeOption || "");
-            setPhone(data.phoneNumber || "");
-            setTotal(data.total ? data.total.toString() : "");
-            setBuilding(buildingOption || "");
-            setNoteOfCustomer(data.customerNote || "");
-            setNoteOfOrder(data.orderNote || "");
-            setName(data.fullName || "");
-            setShipCost(data.shipCost ? data.shipCost.toString() : "");
-            setPaymentName(paymentNameOption || "");
-            setPaymentStatus(paymentStatusOption || "");
-
-            // Set other fields if they are part of the response data
-            if (data.productInformation) setProductInformation(data.productInformation);
-            if (data.dateCreate) setCreateOrderDate(data.dateCreate);
-            if (data.timeCreate) setTimeCreate(data.timeCreate);
-        }
-        setIsLoadingCircle(false);
-    } catch (error) {
-        console.error(error);
-        notify("Đã xảy ra lỗi gì đó!!", "Error");
-        setIsLoadingCircle(false);
+  const checkPhoneValid = () => {
+    if (phone.match(/^[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}$/im)) {
+      return true;
     }
-};
+    return false;
+  };
+  
+  
+  
+  
+  const parseCommand = (command) => {
+    const parts = command.split("_");
+    if (parts.length === 11) {
+      const [
+        productInformation,
+        storeId,
+        phone,
+        orderTotal,
+        buildingName,
+        customerNote,
+        orderNote,
+        customerName,
+        shippingCost,
+        deliveryTime,
+        paymentName,
+      ] = parts;
+
+      const storeOption = optionsStore.find((opt) => opt.value === storeId);
+      const buildingOption = optionsBuilding.find(
+        (opt) => opt.label.toLowerCase() === buildingName.toLowerCase()
+      );
+      const paymentOption = optionsPaymentName.find(
+        (opt) => opt.label.toLowerCase() === paymentName.toLowerCase() || opt.shorthand.toLowerCase() === paymentName.toLowerCase()
+      );
+      
+
+      if (!storeOption) {
+        setStoreState("invalid");
+        setStoreMessage("Cửa hàng không tồn tại");
+      } else {
+        setStore(storeOption);
+        setStoreState("valid");
+      }
+
+      if (!buildingOption) {
+        setBuildingState("invalid");
+        setBuildingMessage("Địa điểm giao không tồn tại");
+      } else {
+        setBuilding(buildingOption);
+        setBuildingState("valid");
+      }
+
+      if (!paymentOption) {
+        setPaymentNameState("invalid");
+      } else {
+        setPaymentName(paymentOption);
+        setPaymentNameState("valid");
+      }
+
+      setPhone(phone);
+      setPhoneState(checkPhoneValid() ? "valid" : "invalid");
+
+      setTotal(orderTotal);
+      setTotalState(orderTotal >= 0 ? "valid" : "invalid");
+
+      setShipCost(shippingCost);
+      setShipCostState(shippingCost >= 0 ? "valid" : "invalid");
+
+      setName(customerName);
+      setNameState(
+        customerName.trim() !== "" &&
+          customerName.length <= 50 &&
+          /^[A-Za-z\sÀ-ỹ]{1,50}$/.test(customerName)
+          ? "valid"
+          : "invalid"
+      );
+
+      setProductInformation(productInformation);
+      
+      setNoteOfCustomer(customerNote);
+      setNoteOfOrder(orderNote);
+      setCommandBoxValueMessage("Command hợp lệ");
+      setCommandBoxValueState("valid");
+    } else {
+      setCommandBoxValueMessage(
+        "Command không đúng định dạng. Vui lòng nhập lại."
+      );
+      setCommandBoxValueState("invalid");
+    }
+    
+  };
 
 
 
-  useEffect(() => {
-    console.log("Order List from Context:", orderList); // Log order list from context
-  }, [orderList]);
-  // useEffect(() => {
-  //   console.log("Selected Mode ID:", modeId);
-  // }, [modeId]);
-  // useEffect(() => {
-  //   console.log("Paymenasd statsyu:", paymentStatus);
-  // }, [paymentStatus]);
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
@@ -137,71 +197,12 @@ const CreateOrder = () => {
     }),
   };
 
-  //Assign values to fields from api
-  // useEffect(() => {
-  //   if (allOrders) {
-  //     const selectedOrder = orderList.find(
-  //       (order) => order.id === allOrders.value
-  //     );
-  //     if (selectedOrder) {
-  //       setName(selectedOrder.customerName);
-  //       setPhone(selectedOrder.phone);
-
-  //       const selectedStore = storeList.find(
-  //         (store) => store.name === selectedOrder.storeName
-  //       );
-  //       setStore(
-  //         selectedStore
-  //           ? { label: selectedStore.name, value: selectedStore.id }
-  //           : null
-  //       );
-
-  //       const selectedBuilding = buildingList.find(
-  //         (building) => building.name === selectedOrder.buildingName
-  //       );
-  //       setBuilding(
-  //         selectedBuilding
-  //           ? { label: selectedBuilding.name, value: selectedBuilding.id }
-  //           : null
-  //       );
-
-  //       setPaymentStatus({
-  //         label: getPaymentStatus(selectedOrder.paymentStatus),
-  //         value: selectedOrder.paymentStatus,
-  //       });
-  //       setPaymentName({
-  //         label: getPaymentName(selectedOrder.paymentName),
-  //         value: selectedOrder.paymentName,
-  //       });
-  //       // setModeId({
-  //       //   label: getModeId(selectedOrder.modeId),
-  //       //   value: selectedOrder.modeId.toString(), // Chuyển đổi giá trị sang chuỗi
-  //       // });
-
-  //       setTotal(selectedOrder.total);
-  //       setShipCost(selectedOrder.shipCost);
-  //       setNoteOfOrder(selectedOrder.orderNote);
-  //       setNoteOfCustomer(selectedOrder.customerNote);
-  //     }
-  //   }
-  // }, [allOrders, orderList]);
-
-
-  // Ensure orderList is an array before mapping
-  const optionsOrder = Array.isArray(orderList)
-    ? orderList.map((item) => ({
-        label: item.id,
-        value: item.id,
-      }))
-    : [];
-
   const optionsStore = storeList.map((item) => {
     return {
       label: item.name,
       value: item.id,
     };
   });
-
   const optionsBuilding = buildingList.map((item) => {
     return {
       label: item.name,
@@ -209,112 +210,42 @@ const CreateOrder = () => {
     };
   });
 
-  // const getModeId = (item) => {
-  //   switch (item) {
-  //     case 0:
-  //       return "Từ cửa hàng đến hub";
-  //     case 1:
-  //       return "Từ hub đến khách hàng";
-  //     case 2:
-  //       return "Từ cửa hàng đến khách hàng";
-  //     default:
-  //       return "";
-  //   }
-  // };
-
-  // const optionsModeId = [0, 1, 2].map((item) => ({
-  //   label: getModeId(item),
-  //   value: item,
-  // }));
-
-  const getPaymentStatus = (item) => {
-    switch (item) {
-      case 0:
-        return "Chưa thanh toán";
-      case 1:
-        return "Đã thanh toán";
-      case 2:
-        return "Đã huỷ";
-      default:
-        return "";
-    }
-  };
-
-  const optionsPaymentStatus = [0, 1, 2].map((item) => {
-    return {
-      label: getPaymentStatus(item),
-      value: item,
-    };
-  });
-
   const getPaymentName = (item) => {
     switch (item) {
       case 0:
-        return "Thu hộ tiền mặt";
+        return ["Thu hộ tiền mặt", "TM"];
       case 1:
-        return "Thu hộ chuyển khoản";
+        return ["Thu hộ chuyển khoản", "CK"];
       case 2:
-        return "Đã thanh toán";
+        return ["Đã thanh toán", "DTT"];
       default:
-        return "";
+        return ["", ""];
     }
   };
 
   const optionsPaymentName = [0, 1, 2].map((item) => {
+    const [label, shorthand] = getPaymentName(item);
     return {
-      label: getPaymentName(item),
+      label: label,
       value: item,
+      shorthand: shorthand, 
     };
   });
 
-  const checkPhoneValid = () => {
-    if (phone.match(/^[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}$/im)) {
-      return true;
-    }
-    return false;
-  };
+  
 
   // Get Time and Date current
   useEffect(() => {
     const now = new Date();
-    const formattedDate = now.toISOString().split("T")[0];
+    // const formattedDate = now.toISOString().split("T")[0];
     const formattedTime = now.toTimeString().split(" ")[0].slice(0, 5);
 
-    setCreateOrderDate(formattedDate);
-    setTimeCreate(formattedTime);
     setTimeReceived(formattedTime);
+    setTimeDelivery(formattedTime);
   }, []);
-
-  // Check date time not is past
-  const checkDateTime = (date, time) => {
-    const dateTimeStr = `${date}T${time}`;
-    const selectedDateTime = new Date(dateTimeStr);
-    const now = new Date();
-
-    // Kiểm tra xem ngày và thời gian đã chọn có ở quá khứ không
-    if (selectedDateTime < now) {
-      return false;
-    }
-    return true;
-  };
+  // VALIDATION FORM
   const validateCustomStylesForm = () => {
     let valid = true;
-
-    // All Order
-    if (allOrders === "") {
-      valid = false;
-      setAllOrdersState("invalid");
-    } else {
-      setAllOrdersState("valid");
-    }
-
-    //ModeId
-    //  if (modeId.value === "") { // Kiểm tra giá trị value của modeId
-    //   valid = false;
-    //   setModeIdState("invalid");
-    // } else {
-    //   setModeIdState("valid");
-    // }
 
     // Product information
     switch (true) {
@@ -341,26 +272,24 @@ const CreateOrder = () => {
         setProductInformationState("valid");
         setProductInformationMessage("");
     }
-    // Kiểm tra ngày tạo đơn
-    if (!checkDateTime(createOrderDate, "00:00")) {
+
+    if(timeReceived === ""){
       valid = false;
-      setCreateOrderDateState("invalid");
-      setCreateOrderDateMessage("Ngày tạo đơn không được ở quá khứ");
-    } else {
-      setCreateOrderDateState("valid");
-      setCreateOrderDateMessage("");
+      setTimeReceivedState("invalid");
+      setTimeReceivedMessage("Thời gian nhận đơn không được để trống");
+    }else {
+      setTimeReceivedState("valid");
+      setTimeReceivedMessage("");
     }
 
-    // Kiểm tra thời gian tạo đơn
-    if (!checkDateTime(createOrderDate, timeCreate)) {
+    if(timeDelivery === ""){
       valid = false;
-      setTimeCreateState("invalid");
-      setTimeCreateMessage("Thời gian tạo đơn không được ở quá khứ");
-    } else {
-      setTimeCreateState("valid");
-      setTimeCreateMessage("");
+      setTimeDeliveryState("invalid");
+      setTimeDeliveryMessage("Thời gian giao hàng không được để trống");
+    }else {
+      setTimeDeliveryState("valid");
+      setTimeDeliveryMessage("");
     }
-
     // STORE
     if (store === "") {
       valid = false;
@@ -398,29 +327,6 @@ const CreateOrder = () => {
         setNameState("valid");
         setNameMessage("");
     }
-
-    // PHONE NUMBER
-    if (phone === "") {
-      setPhoneState("invalid");
-      setPhoneMessage("Số điện thoại không được để trống");
-    } else if (!checkPhoneValid()) {
-      valid = false;
-      setPhoneState("invalid");
-      setPhoneMessage("Số điện thoại không hợp lệ");
-    } else {
-      setPhoneState("valid");
-      setPhoneMessage("Số điện thoại không được để trống");
-    }
-
-    // PAYMENT
-
-    if (paymentStatus === "") {
-      valid = false;
-      setPaymentStatusState("invalid");
-    } else {
-      setPaymentStatusState("valid");
-    }
-
     if (paymentName === "") {
       valid = false;
       setPaymentNameState("invalid");
@@ -447,6 +353,15 @@ const CreateOrder = () => {
       setShipCostState("valid");
     }
 
+    // PHONE NUMBER
+    if (phone === "") {
+      setPhoneState("invalid");
+      setPhoneMessage("Số điện thoại không được để trống");
+    } else if (!checkPhoneValid()) {
+      valid = false;
+      setPhoneState("invalid");
+      setPhoneMessage("Số điện thoại không hợp lệ");
+    } 
     return valid;
   };
 
@@ -455,19 +370,16 @@ const CreateOrder = () => {
       setIsLoadingCircle(true);
       let order = {
         productInformation: productInformation,
-        dateCreate: createOrderDate,
-        timeCreate: timeCreate,
-        // timeReceived: timeReceived,
+        timeReceived: timeReceived,
+        timeDelivery:timeDelivery,
         paymentName: paymentName.value,
-        paymentStatus: paymentStatus.value,
-        // modeId: modeId.value,
         total: parseFloat(total),
         shipCost: shipCost,
         noteOfOrder: noteOfOrder,
+        noteOfCustomer: noteOfCustomer,
         phoneNumber: phone,
         fullName: name,
         buildingId: building.value,
-        noteOfCustomer: noteOfCustomer,
         deliveryTimeId: "6",
       };
 
@@ -485,12 +397,8 @@ const CreateOrder = () => {
             setNoteOfOrder("");
             setNoteOfCustomer("");
             setPaymentName("");
-            setPaymentStatus("");
-            // setModeId("");
             setShipCost("");
-            setCreateOrderDate("");
-            setTimeCreate("");
-            // setTimeReceived("");
+            setTimeReceived("");
           }
         })
         .catch((error) => {
@@ -506,73 +414,52 @@ const CreateOrder = () => {
       <SimpleHeader name="Tạo vận đơn" parentName="Quản Lý" />
       <Container className="mt--6" fluid>
         <Row>
-
-
-          {/* Command Box */}
-          <div className="col-md-12" style={{ marginBottom: "-20px" }}>
+          
+         {/* Command Box */}
+         <div className="col-md-12" style={{ marginBottom: "-10px" }}>
             <div className="form-group">
               <label className="form-control-label">
                 Hộp lệnh
-                <span style={{ color: "red" }}> * </span> 
+                <span style={{ color: "red" }}> * </span>
               </label>
-              <textarea
-                rows={2}
-                className="form-control"
-                type="search"
-                id="example-search-input"
-                value={commandBoxValue}
-            onChange={(e) => {
-              setCommandBoxValue(e.target.value);
-            }}
-              />
-                <span style={{ color: "grey", fontSize:"13px" }}
-                >Store Id_Số điện thoại_Total_Building Name_Customer Note_Order Note_Tên khách hàng_Giá ship_Delivery Time_Loại thanh toán
-                </span>
-
-            </div>
-          </div>
-
-          {/* COMMAND BUTTON */}
-      <Col className="mt-1  text-md-right mb-4" lg="12" xs="5">
-        <Button
-          onClick={handleCommandSubmit}
-          className="btn-neutral"
-          color="default"
-          size="lg"
-          disabled={isLoadingCircle}
-          style={{
-            background: "var(--primary)",
-            color: "#000",
-            padding: "0.4rem 0.5rem",
-          }}
-        >
-          <div
-            className="flex"
-            style={{
-              alignItems: "center",
-              width: 99,
-              justifyContent: "center",
-            }}
-          >
-            {isLoadingCircle ? (
-              <Spinner
+              <span style={{ color: "grey", fontSize: "13px" }}>
+                Store Id_Số điện thoại_Total_Building Name_Customer Note_Order
+                Note_Tên khách hàng_Giá ship_Delivery Time_Loại thanh toán
+              </span>
+              <Input
+              type="text"
+              id="input-command-box"
+              placeholder="Nhập command"
+              value={commandBoxValue}
+              onChange={handleCommandChange}
+              // onPaste={handlePaste}
+              className={
+                commandBoxValueState === "invalid" ? "is-invalid" : ""
+              }
+            />
+            {commandBoxValueState && (
+              <div
+                className={
+                  commandBoxValueState === "valid" ? "valid" : "invalid"
+                }
                 style={{
-                  color: "#000",
-                  height: 25,
-                  width: 25,
-                  margin: "auto",
+                  fontSize: "80%",
+                  color:
+                    commandBoxValueState === "valid" ? "#2dce89" : "#fb6340",
+                  marginTop: "0.25rem",
                 }}
-              />
-            ) : (
-              "Gửi"
+              >
+                {commandBoxValueMessage}
+              </div>
             )}
           </div>
-        </Button>
-      </Col>
+        </div>
+          
 
           <div className="col-lg-12">
             <Card>
-              {/* TITLE dơn hàng */}
+
+              {/* TITLE ĐƠN HÀNG */}
               <div
                 style={{
                   display: "flex",
@@ -583,7 +470,7 @@ const CreateOrder = () => {
                 className="align-items-center"
               >
                 <CardHeader className="border-0" style={{ padding: "15px" }}>
-                  <h2 className="mb-0">Thông tin đơn hàng </h2>
+                  <h2 className="mb-0">Thông tin đơn hàng</h2>
                 </CardHeader>
               </div>
 
@@ -591,47 +478,26 @@ const CreateOrder = () => {
               <div className="col-md-12">
                 <form>
                   <div className="row">
-                    {/* All Order */}
-                    <div className="col-md-3">
+                    {/* Product Information */}
+                    <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Mã đơn hàng <span style={{ color: "red" }}>*</span>
+                          Thông tin sản phẩm{" "}
+                          <span style={{ color: "red" }}>*</span>
                         </label>
-                        <div
-                          className={`${
-                            allOrdersState === "invalid" && "error-select"
-                          }`}
-                        >
-                          <Select
-                            options={optionsOrder}
-                            styles={customStyles}
-                            value={allOrders}
-                            onChange={(e) => {
-                              setAllOrders(e);
-                            }}
-                            isClearable
-                            isSearchable
-                            onCreateOption={(inputValue) => {
-                              setAllOrders({
-                                label: inputValue,
-                                value: inputValue,
-                              });
-                            }}
-                            onBlur={() => {
-                              if (customOrder && !allOrders) {
-                                setAllOrders({
-                                  label: customOrder,
-                                  value: customOrder,
-                                });
-                              }
-                            }}
-                            inputValue={customOrder}
-                            onInputChange={(inputValue) => {
-                              setCustomOrder(inputValue);
-                            }}
-                          />
-                        </div>
-                        {allOrdersState === "invalid" && (
+                        <Input
+                          valid={productInformationState === "valid"}
+                          invalid={productInformationState === "invalid"}
+                          className="form-control"
+                          
+                          type="text"
+                          value={productInformation}
+                          onPaste={handlePaste}
+                          onChange={(e) => {
+                            setProductInformation(e.target.value);
+                          }}
+                        />
+                        {productInformationState === "invalid" && (
                           <div
                             className="invalid"
                             style={{
@@ -640,7 +506,68 @@ const CreateOrder = () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            Mã đơn hàng không được để trống
+                            {productInformationMessage}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                     {/* Time Received */}
+                     <div className="col-md-3">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Thời gian nhận hàng{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <Input
+                         valid={timeReceivedState === "valid"}
+                         invalid={timeReceivedState === "invalid"}
+                          className="form-control"
+                          type="time"
+                          value={timeReceived}
+                          
+                          onChange={(e) => setTimeReceived(e.target.value)}
+                        />
+                        {timeDeliveryState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {timeDeliveryMessage}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ESTIMATED DELIVERY TIME */}
+                    <div className="col-md-3">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Thời gian giao hàng dự kiến{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <Input
+                        valid={timeDeliveryState === "valid"}
+                        invalid={timeDeliveryState === "invalid"}
+                          className="form-control"
+                          type="time"
+                          value={timeDelivery}
+                          onChange={(e) => setTimeDelivery(e.target.value)}
+                        />
+                        {timeDeliveryState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {timeDeliveryMessage}
                           </div>
                         )}
                       </div>
@@ -662,144 +589,14 @@ const CreateOrder = () => {
                             placeholder="Cửa hàng"
                             styles={customStyles}
                             value={store}
+                          onPaste={handlePaste}
                             onChange={(e) => {
                               setStore(e);
                             }}
-                          />
+                          ></Select>
                         </div>
-                        {storeState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            Cửa hàng không được để trống
-                          </div>
-                        )}
                       </div>
                     </div>
-
-                    {/* Create Order Date */}
-                    <div className="col-md-3">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Ngày tạo đơn <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <Input
-                          className="form-control"
-                          type="date"
-                          value={createOrderDate}
-                          onChange={(e) => setCreateOrderDate(e.target.value)}
-                        />
-                        {createOrderDateState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            {createOrderDateMessage}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Time Create */}
-                    <div className="col-md-3">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Thời gian tạo đơn{" "}
-                          <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <Input
-                          className="form-control"
-                          type="time"
-                          value={timeCreate}
-                          onChange={(e) => setTimeCreate(e.target.value)}
-                        />
-                        {timeCreateState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            {timeCreateStateMessage}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {/* Product Information */}
-                    <div className="col-md-6">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Thông tin sản phẩm{" "}
-                          <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <Input
-                          valid={productInformationState === "valid"}
-                          invalid={productInformationState === "invalid"}
-                          className="form-control"
-                          type="text"
-                          value={productInformation}
-                          onChange={(e) => {
-                            setProductInformation(e.target.value);
-                          }}
-                        />
-                        {productInformationState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            {productInformationMessage}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Address Store */}
-                    {/* <div className="col-md-6">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Địa chỉ cửa hàng{" "}
-                          <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <Input
-                          valid={nameState === "valid"}
-                          invalid={nameState === "invalid"}
-                          className="form-control"
-                          type="search"
-                          id="example-search-input"
-                          value={`${name}`}
-                          onChange={(e) => {
-                            setName(e.target.value);
-                          }}
-                        />
-                        {nameState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            {nameMessage}
-                          </div>
-                        )}
-                      </div>
-                    </div> */}
 
                     {/* TOTAL (Giá trị đơn hàng chứa ship) */}
                     <div className="col-md-3">
@@ -816,6 +613,7 @@ const CreateOrder = () => {
                           type="number"
                           id="example-search-input"
                           value={`${total}`}
+                          onPaste={handlePaste}
                           onChange={(e) => {
                             if (parseFloat(e.target.value) < 0) {
                               setTotal("0");
@@ -844,6 +642,7 @@ const CreateOrder = () => {
                           type="number"
                           id="example-search-input"
                           value={`${shipCost}`}
+                          onPaste={handlePaste}
                           onChange={(e) => {
                             if (parseFloat(e.target.value) < 0) {
                               setShipCost("0");
@@ -858,81 +657,8 @@ const CreateOrder = () => {
                       </div>
                     </div>
 
-                    {/* Shipping Type
-                    <div className="col-md-6">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Loại giao hàng {""}
-                           <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <div
-                          className={`${
-                            modeIdState === "invalid" && "error-select"
-                          }`}
-                        >
-                          <Select
-                            options={optionsModeId}
-                            placeholder=""
-                            styles={customStyles}
-                            value={modeId} 
-                            onChange={(e) => {
-                              setModeId(e); 
-                            }}
-                          />
-                        </div>
-                        {modeIdState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            Trạng thái giao hàng không được để trống
-                          </div>
-                        )}
-                      </div>
-                    </div> */}
-
-                    {/* PAYMENT Status */}
-                    <div className="col-md-6">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Trạng thái thanh toán{" "}
-                          <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <div
-                          className={`${
-                            paymentStatusState === "invalid" && "error-select"
-                          }`}
-                        >
-                          <Select
-                            options={optionsPaymentStatus}
-                            placeholder="Chưa thanh toán"
-                            styles={customStyles}
-                            value={paymentStatus}
-                            onChange={(e) => {
-                              setPaymentStatus(e);
-                            }}
-                          />
-                        </div>
-                        {paymentStatusState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            Trạng thái thanh toán không được để trống
-                          </div>
-                        )}
-                      </div>
-                    </div>
                     {/* PAYMENT NAME */}
-                    <div className="col-md-6">
+                    <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
                           Phương thức thanh toán{" "}
@@ -948,6 +674,7 @@ const CreateOrder = () => {
                             placeholder="Thu hộ"
                             styles={customStyles}
                             value={paymentName}
+                          onPaste={handlePaste}
                             onChange={(e) => {
                               setPaymentName(e);
                             }}
@@ -1019,6 +746,7 @@ const CreateOrder = () => {
                           type="search"
                           id="example-search-input"
                           value={`${name}`}
+                          onPaste={handlePaste}
                           onChange={(e) => {
                             setName(e.target.value);
                           }}
@@ -1050,7 +778,8 @@ const CreateOrder = () => {
                           className="form-control"
                           type="search"
                           id="example-search-input"
-                          value={`${phone}`}
+                          value={phone}
+                          onPaste={handlePaste}
                           onChange={(e) => {
                             setPhone(e.target.value);
                           }}
@@ -1086,6 +815,7 @@ const CreateOrder = () => {
                             placeholder="Địa điểm giao"
                             styles={customStyles}
                             value={building}
+                          onPaste={handlePaste}
                             onChange={(e) => {
                               setBuilding(e);
                             }}
@@ -1126,7 +856,6 @@ const CreateOrder = () => {
                       </div>
                     </div>
                   </div>
-
                   {/* ACTION BUTTONS */}
                   <Col className="mt-3  text-md-right mb-4" lg="12" xs="5">
                     {/* CREATE BUTTON */}

@@ -375,8 +375,8 @@ const CreateOrder = () => {
         paymentName: paymentName.value,
         total: parseFloat(total),
         shipCost: shipCost,
-        noteOfOrder: noteOfOrder,
-        noteOfCustomer: noteOfCustomer,
+        orderNote: noteOfOrder,
+        customerNote: noteOfCustomer,
         phoneNumber: phone,
         fullName: name,
         buildingId: building.value,
@@ -389,6 +389,7 @@ const CreateOrder = () => {
           if (res.data) {
             setIsLoadingCircle(false);
             notify("Thêm mới thành công", "Success");
+            setProductInformation("");
             setStore("");
             setBuilding("");
             setName("");
@@ -423,7 +424,7 @@ const CreateOrder = () => {
                 <span style={{ color: "red" }}> * </span>
               </label>
               <span style={{ color: "grey", fontSize: "13px" }}>
-                Store Id_Số điện thoại_Total_Building Name_Customer Note_Order
+                Thông tin sản phẩm_Store Id_Số điện thoại_Total_Building Name_Customer Note_Order
                 Note_Tên khách hàng_Giá ship_Delivery Time_Loại thanh toán
               </span>
               <Input

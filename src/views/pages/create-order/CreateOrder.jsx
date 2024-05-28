@@ -65,7 +65,7 @@ const CreateOrder = () => {
   const [paymentName, setPaymentName] = useState("");
   const [paymentNameState, setPaymentNameState] = useState("");
   const [isLoadingCircle, setIsLoadingCircle] = useState(false);
-  
+
   const handlePaste = (e) => {
     // Ngăn chặn hành động mặc định của sự kiện paste
     e.preventDefault();
@@ -74,16 +74,32 @@ const CreateOrder = () => {
     // Xử lý dữ liệu và cập nhật các trường dữ liệu
     parseCommand(pastedData);
     // Kiểm tra tính hợp lệ của các trường dữ liệu và cập nhật trạng thái
-    validateCustomStylesForm();
+    // setTimeout(() => validateCustomStylesForm(), 0);
   };
-  
 
   const handleCommandChange = (e) => {
     const value = e.target.value;
     setCommandBoxValue(value);
     parseCommand(value);
-    validateCustomStylesForm();
+    // setTimeout(() => validateCustomStylesForm(), 0);
   };
+  useEffect(() => {
+    if (commandBoxValue !== "") {
+      validateCustomStylesForm();
+    }
+  }, [
+    productInformation,
+    store,
+    total,
+    shipCost,
+    timeReceived,
+    timeDelivery,
+    paymentName,
+    phone,
+    name,
+    building,
+    commandBoxValue,
+  ]); // List all state variables that should trigger validation
 
   const checkPhoneValid = () => {
     if (phone.match(/^[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}$/im)) {
@@ -91,10 +107,7 @@ const CreateOrder = () => {
     }
     return false;
   };
-  
-  
-  
-  
+
   const parseCommand = (command) => {
     const parts = command.split("_");
     if (parts.length === 11) {
@@ -117,9 +130,10 @@ const CreateOrder = () => {
         (opt) => opt.label.toLowerCase() === buildingName.toLowerCase()
       );
       const paymentOption = optionsPaymentName.find(
-        (opt) => opt.label.toLowerCase() === paymentName.toLowerCase() || opt.shorthand.toLowerCase() === paymentName.toLowerCase()
+        (opt) =>
+          opt.label.toLowerCase() === paymentName.toLowerCase() ||
+          opt.shorthand.toLowerCase() === paymentName.toLowerCase()
       );
-      
 
       if (!storeOption) {
         setStoreState("invalid");
@@ -163,7 +177,7 @@ const CreateOrder = () => {
       );
 
       setProductInformation(productInformation);
-      
+
       setNoteOfCustomer(customerNote);
       setNoteOfOrder(orderNote);
       setCommandBoxValueMessage("Command hợp lệ");
@@ -174,27 +188,6 @@ const CreateOrder = () => {
       );
       setCommandBoxValueState("invalid");
     }
-    
-  };
-
-
-
-  const customStyles = {
-    control: (provided, state) => ({
-      ...provided,
-      background: "#fff",
-      borderColor: "#dee2e6",
-      minHeight: "30px",
-      height: "46px",
-      // width: "200px",
-      boxShadow: state.isFocused ? null : null,
-      borderRadius: "0.5rem",
-    }),
-
-    input: (provided, state) => ({
-      ...provided,
-      margin: "5px",
-    }),
   };
 
   const optionsStore = storeList.map((item) => {
@@ -228,11 +221,9 @@ const CreateOrder = () => {
     return {
       label: label,
       value: item,
-      shorthand: shorthand, 
+      shorthand: shorthand,
     };
   });
-
-  
 
   // Get Time and Date current
   useEffect(() => {
@@ -273,20 +264,20 @@ const CreateOrder = () => {
         setProductInformationMessage("");
     }
 
-    if(timeReceived === ""){
+    if (timeReceived === "") {
       valid = false;
       setTimeReceivedState("invalid");
       setTimeReceivedMessage("Thời gian nhận đơn không được để trống");
-    }else {
+    } else {
       setTimeReceivedState("valid");
       setTimeReceivedMessage("");
     }
 
-    if(timeDelivery === ""){
+    if (timeDelivery === "") {
       valid = false;
       setTimeDeliveryState("invalid");
       setTimeDeliveryMessage("Thời gian giao hàng không được để trống");
-    }else {
+    } else {
       setTimeDeliveryState("valid");
       setTimeDeliveryMessage("");
     }
@@ -338,9 +329,16 @@ const CreateOrder = () => {
     if (total === "") {
       valid = false;
       setTotalState("invalid");
+      setTotalMessage("Giá trị đơn hàng không được để trống");
+    } else if (!/^\d+(\.\d+)?$/.test(total)) {
+      valid = false;
+      setTotalState("invalid");
+      setTotalMessage("Giá trị đơn hàng không hợp lệ");
     } else if (total < 0) {
       setTotal(0);
+      valid = false;
       setTotalState("invalid");
+      setTotalMessage("Giá trị đơn hàng không thể là 1 giá trị âm");
     } else {
       setTotalState("valid");
     }
@@ -349,6 +347,11 @@ const CreateOrder = () => {
     if (shipCost === "") {
       valid = false;
       setShipCostState("invalid");
+      setShipCostMessage("Phí dịch vụ không được để trống");
+    } else if (!/^\d+(\.\d+)?$/.test(shipCost)) {
+      valid = false;
+      setShipCostState("invalid");
+      setShipCostMessage("Phí dịch vụ không hợp lệ");
     } else {
       setShipCostState("valid");
     }
@@ -361,7 +364,9 @@ const CreateOrder = () => {
       valid = false;
       setPhoneState("invalid");
       setPhoneMessage("Số điện thoại không hợp lệ");
-    } 
+    } else {
+      setPhoneState("valid");
+    }
     return valid;
   };
 
@@ -371,7 +376,7 @@ const CreateOrder = () => {
       let order = {
         productInformation: productInformation,
         timeReceived: timeReceived,
-        timeDelivery:timeDelivery,
+        timeDelivery: timeDelivery,
         paymentName: paymentName.value,
         total: parseFloat(total),
         shipCost: shipCost,
@@ -410,56 +415,75 @@ const CreateOrder = () => {
     }
   };
 
+  const getSelectStyles = (isValid, isInvalid) => ({
+    control: (provided, state) => ({
+      ...provided,
+      background: "#fff",
+      borderColor: isInvalid ? "#fb6340" : isValid ? "#2dce89" : "#dee2e6",
+      minHeight: "30px",
+      height: "46px",
+      boxShadow: state.isFocused
+        ? "0 0 0 0.2rem rgba(50, 151, 211, 0.25)"
+        : null,
+      "&:hover": {
+        borderColor: isInvalid ? "#fb6340" : isValid ? "#2dce89" : "#dee2e6",
+      },
+      borderRadius: "0.5rem",
+    }),
+    input: (provided) => ({
+      ...provided,
+      margin: "5px",
+    }),
+  });
+
   return (
     <>
       <SimpleHeader name="Tạo vận đơn" parentName="Quản Lý" />
       <Container className="mt--6" fluid>
         <Row>
-          
-         {/* Command Box */}
-         <div className="col-md-12" style={{ marginBottom: "-10px" }}>
+          {/* Command Box */}
+          <div className="col-md-12" style={{ marginBottom: "-10px" }}>
             <div className="form-group">
               <label className="form-control-label">
                 Hộp lệnh
                 <span style={{ color: "red" }}> * </span>
               </label>
               <span style={{ color: "grey", fontSize: "13px" }}>
-                Thông tin sản phẩm_Store Id_Số điện thoại_Total_Building Name_Customer Note_Order
-                Note_Tên khách hàng_Giá ship_Delivery Time_Loại thanh toán
+                Thông tin sản phẩm_Store Id_Số điện thoại_Total_Building
+                Name_Customer Note_Order Note_Tên khách hàng_Giá ship_Delivery
+                Time_Loại thanh toán
               </span>
               <Input
-              type="text"
-              id="input-command-box"
-              placeholder="Nhập command"
-              value={commandBoxValue}
-              onChange={handleCommandChange}
-              // onPaste={handlePaste}
-              className={
-                commandBoxValueState === "invalid" ? "is-invalid" : ""
-              }
-            />
-            {commandBoxValueState && (
-              <div
+                type="text"
+                id="input-command-box"
+                placeholder="Nhập command"
+                value={commandBoxValue}
+                onChange={handleCommandChange}
+                // onPaste={handlePaste}
                 className={
-                  commandBoxValueState === "valid" ? "valid" : "invalid"
+                  commandBoxValueState === "invalid" ? "is-invalid" : ""
                 }
-                style={{
-                  fontSize: "80%",
-                  color:
-                    commandBoxValueState === "valid" ? "#2dce89" : "#fb6340",
-                  marginTop: "0.25rem",
-                }}
-              >
-                {commandBoxValueMessage}
-              </div>
-            )}
+              />
+              {commandBoxValueState && (
+                <div
+                  className={
+                    commandBoxValueState === "valid" ? "valid" : "invalid"
+                  }
+                  style={{
+                    fontSize: "80%",
+                    color:
+                      commandBoxValueState === "valid" ? "#2dce89" : "#fb6340",
+                    marginTop: "0.25rem",
+                  }}
+                >
+                  {commandBoxValueMessage}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-          
 
           <div className="col-lg-12">
             <Card>
-
               {/* TITLE ĐƠN HÀNG */}
               <div
                 style={{
@@ -490,7 +514,6 @@ const CreateOrder = () => {
                           valid={productInformationState === "valid"}
                           invalid={productInformationState === "invalid"}
                           className="form-control"
-                          
                           type="text"
                           value={productInformation}
                           onPaste={handlePaste}
@@ -512,21 +535,20 @@ const CreateOrder = () => {
                         )}
                       </div>
                     </div>
-                    
-                     {/* Time Received */}
-                     <div className="col-md-3">
+
+                    {/* Time Received */}
+                    <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
                           Thời gian nhận hàng{" "}
                           <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
-                         valid={timeReceivedState === "valid"}
-                         invalid={timeReceivedState === "invalid"}
+                          valid={timeReceivedState === "valid"}
+                          invalid={timeReceivedState === "invalid"}
                           className="form-control"
                           type="time"
                           value={timeReceived}
-                          
                           onChange={(e) => setTimeReceived(e.target.value)}
                         />
                         {timeDeliveryState === "invalid" && (
@@ -552,8 +574,8 @@ const CreateOrder = () => {
                           <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
-                        valid={timeDeliveryState === "valid"}
-                        invalid={timeDeliveryState === "invalid"}
+                          valid={timeDeliveryState === "valid"}
+                          invalid={timeDeliveryState === "invalid"}
                           className="form-control"
                           type="time"
                           value={timeDelivery}
@@ -588,9 +610,12 @@ const CreateOrder = () => {
                           <Select
                             options={optionsStore}
                             placeholder="Cửa hàng"
-                            styles={customStyles}
+                            styles={getSelectStyles(
+                              storeState === "valid",
+                              storeState === "invalid"
+                            )}
                             value={store}
-                          onPaste={handlePaste}
+                            onPaste={handlePaste}
                             onChange={(e) => {
                               setStore(e);
                             }}
@@ -611,7 +636,7 @@ const CreateOrder = () => {
                           valid={totalState === "valid"}
                           invalid={totalState === "invalid"}
                           className="form-control"
-                          type="number"
+                          type="text"
                           id="example-search-input"
                           value={`${total}`}
                           onPaste={handlePaste}
@@ -623,9 +648,7 @@ const CreateOrder = () => {
                             }
                           }}
                         />
-                        <div className="invalid-feedback">
-                          Giá trị đơn hàng không được để trống
-                        </div>
+                        <div className="invalid-feedback">{totalMessage}</div>
                       </div>
                     </div>
 
@@ -640,7 +663,7 @@ const CreateOrder = () => {
                           valid={shipCostState === "valid"}
                           invalid={shipCostState === "invalid"}
                           className="form-control"
-                          type="number"
+                          type="text"
                           id="example-search-input"
                           value={`${shipCost}`}
                           onPaste={handlePaste}
@@ -653,7 +676,7 @@ const CreateOrder = () => {
                           }}
                         />
                         <div className="invalid-feedback">
-                          Phí dịch vụ không được để trống
+                          {shipCostMessage}
                         </div>
                       </div>
                     </div>
@@ -673,9 +696,12 @@ const CreateOrder = () => {
                           <Select
                             options={optionsPaymentName}
                             placeholder="Thu hộ"
-                            styles={customStyles}
+                            styles={getSelectStyles(
+                              paymentNameState === "valid",
+                              paymentNameState === "invalid"
+                            )}
                             value={paymentName}
-                          onPaste={handlePaste}
+                            onPaste={handlePaste}
                             onChange={(e) => {
                               setPaymentName(e);
                             }}
@@ -814,9 +840,12 @@ const CreateOrder = () => {
                           <Select
                             options={optionsBuilding}
                             placeholder="Địa điểm giao"
-                            styles={customStyles}
+                            styles={getSelectStyles(
+                              buildingState === "valid",
+                              buildingState === "invalid"
+                            )}
                             value={building}
-                          onPaste={handlePaste}
+                            onPaste={handlePaste}
                             onChange={(e) => {
                               setBuilding(e);
                             }}

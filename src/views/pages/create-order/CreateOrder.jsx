@@ -83,6 +83,7 @@ const CreateOrder = () => {
     parseCommand(value);
     // setTimeout(() => validateCustomStylesForm(), 0);
   };
+  
   useEffect(() => {
     if (commandBoxValue !== "") {
       validateCustomStylesForm();
@@ -377,7 +378,7 @@ const CreateOrder = () => {
         productInformation: productInformation,
         timeReceived: timeReceived,
         timeDelivery: timeDelivery,
-        paymentName: paymentName.value,
+        paymentType: paymentName.value,
         total: parseFloat(total),
         shipCost: shipCost,
         orderNote: noteOfOrder,

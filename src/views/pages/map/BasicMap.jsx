@@ -27,44 +27,45 @@ import {
 import { OnlinePrediction } from "@mui/icons-material";
 import WifiTetheringOffIcon from "@mui/icons-material/WifiTetheringOff";
 import MenuIcon from "@mui/icons-material/Menu";
-import AlarmOutlinedIcon from '@mui/icons-material/AlarmOutlined';
+import AlarmOutlinedIcon from "@mui/icons-material/AlarmOutlined";
 import RoutingLine from "./LeafRoutingMachine";
+import { getShipperRedis } from "../../../apis/shiperApiService";
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
   const [orders, setOrders] = useState([
-    {
-      id: "Order 1",
-      img: "https://images.fpt.shop/unsafe/filters:quality(5)/fptshop.com.vn/uploads/images/tin-tuc/174965/Originals/meme-la-gi-5.jpg",
-      latitude: "10.8750883",
-      longitude: "106.7992",
-      status: "Đang chờ",
-      isActive: true,
-    },
-    {
-      id: "Order 2",
-      img: "https://images.fpt.shop/unsafe/filters:quality(90)/fptshop.com.vn/uploads/images/tin-tuc/174965/Originals/meme-la-gi-3.jpg",
-      latitude: "10.87796",
-      longitude: "106.80108",
-      status: "Đang giao hàng",
-      isActive: false,
-    },
-    {
-      id: "Order 3",
-      img: "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2023/09/meme-che-15.jpg",
-      latitude: "10.87821",
-      longitude: "106.79594",
-      status: "Đã hoàn thành",
-      isActive: false,
-    },
-    {
-      id: "Order 4",
-      img: "https://bizweb.dktcdn.net/100/438/408/files/meme-het-cuu-yody-vn-11.jpg?v=1695455529047",
-      latitude: "10.88032",
-      longitude: "106.79516",
-      status: "Đã hủy",
-      isActive: false,
-    },
+    // {
+    //   id: "Order 1",
+    //   img: "https://images.fpt.shop/unsafe/filters:quality(5)/fptshop.com.vn/uploads/images/tin-tuc/174965/Originals/meme-la-gi-5.jpg",
+    //   latitude: "10.8750883",
+    //   longitude: "106.7992",
+    //   status: 1,
+    //   isActive: true,
+    // },
+    // {
+    //   id: "Order 2",
+    //   img: "https://images.fpt.shop/unsafe/filters:quality(90)/fptshop.com.vn/uploads/images/tin-tuc/174965/Originals/meme-la-gi-3.jpg",
+    //   latitude: "10.87796",
+    //   longitude: "106.80108",
+    //   status: 1,
+    //   isActive: false,
+    // },
+    // {
+    //   id: "Order 3",
+    //   img: "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2023/09/meme-che-15.jpg",
+    //   latitude: "10.87821",
+    //   longitude: "106.79594",
+    //   status: 1,
+    //   isActive: false,
+    // },
+    // {
+    //   id: "Order 4",
+    //   img: "https://bizweb.dktcdn.net/100/438/408/files/meme-het-cuu-yody-vn-11.jpg?v=1695455529047",
+    //   latitude: "10.88032",
+    //   longitude: "106.79516",
+    //   status: 1,
+    //   isActive: false,
+    // },
   ]);
   const [showDeliveringShippers, setShowDeliveringShippers] = useState(false);
   const [showOfflineShippers, setShowOfflineShippers] = useState(false);
@@ -79,6 +80,10 @@ export default function BasicMap() {
   });
   const [showShipperOrOrder, setShowShipperOrOrder] = useState(true);
   const [selectedShipperId, setSelectedShipperId] = useState(null);
+
+  const [drawLine, setDrawLine] = useState(false);
+
+  const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
 
   const mapRef = useRef(null);
 
@@ -177,29 +182,64 @@ export default function BasicMap() {
     localStorage.setItem("mapType", newMapType ? "satellite" : "default");
   };
 
+  const handleDrawLine = (shipper) => {
+    setDrawLine(!drawLine);
+  };
+  // const aaa = async (shipper) => {
+  //   return await axios.get(
+  //     `http://vhgp-api.vhgp.net/api/locations/${shipper.id}`
+  //   );
+  // };
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          "http://vhgp-api.vhgp.net/api/Shipper/GetRedis"
-        );
+        const response = await getShipperRedis();
+        console.log("dmmm ", response);
         setShippers(response.data);
-        const newShippers = response.data;
-        const newPaths = { ...shipperPaths };
+        // const newShippers = response.data;
+        // const newPaths = { ...shipperPaths };
 
-        newShippers.forEach((shipper) => {
-          if (!newPaths[shipper.id]) {
-            newPaths[shipper.id] = [];
-          }
-          newPaths[shipper.id].push([
-            parseFloat(shipper.latitude),
-            parseFloat(shipper.longitude),
-          ]);
-        });
+        // newShippers.forEach((shipper) => {
+        //   if (!newPaths[shipper.id]) {
+        //     newPaths[shipper.id] = [];
+        //   }
+        //   newPaths[shipper.id].push([
+        //     parseFloat(shipper.latitude),
+        //     parseFloat(shipper.longitude),
+        //   ]);
+        // });
 
-        localStorage.setItem("shipperPaths", JSON.stringify(newPaths));
-        console.log("Final updated paths:", shipperPaths); // Logging the final path structure
-        console.log("3s..", shippers);
+        // localStorage.setItem("shipperPaths", JSON.stringify(newPaths));
+        // console.log("Final updated paths:", shipperPaths); // Logging the final path structure
+        // const newShipperAndOrder = response.data;
+
+        // const locationPromises = [];
+        // for (const shipper of newShipperAndOrder) {
+        //   const odApiPromise = await aaa(shipper);
+        //   console.log("dmmm 2", odApiPromise);
+
+        //   locationPromises.push(
+        //     Promise.all([spApiPromise, odApiPromise]).then(
+        //       ([spApiResponse, odApiResponse]) => {
+        //         return [
+        //           {
+        //             longitude: spApiResponse.data.longitude,
+        //             latitude: spApiResponse.data.latitude,
+        //           },
+        //           {
+        //             longitude: odApiResponse.data.longitude,
+        //             latitude: odApiResponse.data.latitude,
+        //           },
+        //         ];
+        //       }
+        //     )
+        //   );
+        // }
+
+        // const locations = await Promise.all(locationPromises);
+        // setShipperAndOrderPaths(locations);
+        // console.log("dmmm 11111", shipperAndOrderPaths);
+        // return locations.flat(); // Nếu bạn muốn duỗi phẳng mảng vị trí lồng nhau.
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -209,6 +249,17 @@ export default function BasicMap() {
     // return () => clearInterval(intervalId);
   }, []);
 
+  // var locations = [
+  //   {
+  //     longitude: 10.8431579,
+  //     latitude: 106.8365875,
+  //   },
+  //   {
+  //     longitude: 10.836891,
+  //     latitude: 106.8305375,
+  //   },
+  // ];
+
   const countShippersByStatus = (status) => {
     return shippers.filter(
       (shipper) => shipper.status.toLowerCase() === status.toLowerCase()
@@ -216,9 +267,7 @@ export default function BasicMap() {
   };
 
   const countOrderByStatus = (status) => {
-    return orders.filter(
-      (order) => order.status.toLowerCase() === status.toLowerCase()
-    ).length;
+    return orders.filter((order) => order.status === status).length;
   };
 
   const actions_1 = [
@@ -244,42 +293,34 @@ export default function BasicMap() {
   const actions_2 = [
     {
       icon: <OnlinePrediction />,
-      name: `Order đang chờ(${countOrderByStatus("Đang chờ")})`,
+      name: `Order đang chờ(${countOrderByStatus(1)})`,
       onClick: handleShowAvailableOrders,
     },
-    {
-      icon: <AlarmOutlinedIcon />,
-      name: `Order đang giao(${countOrderByStatus("Đang giao hàng")})`,
-      onClick: handleShowDeliveringOrders,
-    },
-    {
-      icon: <WifiTetheringOffIcon />,
-      name: `Order đã giao hàng thành công (${countOrderByStatus(
-        "Đã hoàn thành"
-      )})`,
-      onClick: handleShowDoneOrders,
-    },
-    {
-      icon: <WifiTetheringOffIcon />,
-      name: `Order đã hủy (${countOrderByStatus("Đã hủy")})`,
-      onClick: handleShowCancelOrder,
-    },
+    // {
+    //   icon: <AlarmOutlinedIcon />,
+    //   name: `Order đang giao(${countOrderByStatus("Đang giao hàng")})`,
+    //   onClick: handleShowDeliveringOrders,
+    // },
+    // {
+    //   icon: <WifiTetheringOffIcon />,
+    //   name: `Order đã giao hàng thành công (${countOrderByStatus(
+    //     "Đã hoàn thành"
+    //   )})`,
+    //   onClick: handleShowDoneOrders,
+    // },
+    // {
+    //   icon: <WifiTetheringOffIcon />,
+    //   name: `Order đã hủy (${countOrderByStatus("Đã hủy")})`,
+    //   onClick: handleShowCancelOrder,
+    // },
   ];
 
   const actions = showShipperOrOrder ? actions_1 : actions_2;
 
   const filterOrders = orders.filter((order) => {
     if (showAvailableOrder) {
-      return order.status.toLowerCase() === "đang chờ";
-    } else if (showDeliveringOrder) {
-      return order.status.toLowerCase() === "đang giao hàng";
-    } else if (showDoneOrder) {
-      return order.status.toLowerCase() === "đã hoàn thành";
-    } else if (showCancelOrder) {
-      return order.status.toLowerCase() === "đã hủy";
-    } else {
-      return order.isActive;
-    }
+      return (order.status = 1);
+    } else return true;
   });
 
   const filteredShippers = shippers.filter((shipper) => {
@@ -294,18 +335,6 @@ export default function BasicMap() {
       return shipper.isActive;
     }
   });
-
-  var locations = [
-    {
-      "longitude": 10.8431579,
-      "latitude":106.8365875,
-    },
-    {
-      "longitude": 10.8368910, 
-      "latitude":106.8305375,
-    }
-  ];
-
 
   function getRandomColor() {
     var letters = "0123456789ABCDEF";
@@ -337,7 +366,7 @@ export default function BasicMap() {
               : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           }
         />
-        {selectedShipperId && shipperPaths[selectedShipperId] ? (
+        {/* {selectedShipperId && shipperPaths[selectedShipperId] ? (
           <Polyline
             key={
               selectedShipperId + "-" + shipperPaths[selectedShipperId].length
@@ -345,7 +374,7 @@ export default function BasicMap() {
             pathOptions={{ color: getRandomColor(), weight: 5, opacity: 0.7 }}
             positions={shipperPaths[selectedShipperId]}
           />
-        ) : null}
+        ) : null} */}
 
         <SpeedDial
           ariaLabel="SpeedDial example"
@@ -403,7 +432,10 @@ export default function BasicMap() {
                           sx={{ display: "inline" }}
                           color="text.primary"
                         >
-                          Trạng thái: <StatusBadge status={order.status} />
+                          Trạng thái:{" "}
+                          <StatusBadge
+                            status={(order.status = 1 ? "đang chờ đơn" : "")}
+                          />
                         </Typography>
                       </>
                     }
@@ -482,6 +514,7 @@ export default function BasicMap() {
                   icon={customIcon}
                   eventHandlers={{
                     click: () => handleShipperClick(shipper),
+                    click: () => handleDrawLine(shipper),
                   }}
                 >
                   <Popup>
@@ -508,13 +541,16 @@ export default function BasicMap() {
                     <p>Kinh độ: {order.latitude}</p>
                     <p>Vĩ độ: {order.longitude}</p>
                     <p>
-                      Trạng thái: <StatusBadge status={order.status} />
+                      Trạng thái:{" "}
+                      <StatusBadge
+                        status={(order.status = 1 ? "đang chờ đơn" : "")}
+                      />
                     </p>
                   </Popup>
                 </Marker>
               ))}
         </MarkerClusterGroup>
-        <RoutingLine locations={locations}/>
+        {/* {drawLine ? <RoutingLine locations={locations} /> : ""} */}
       </MapContainer>
     </>
   );

@@ -39,3 +39,7 @@ export const putShipper = (shipper) => {
     }
   );
 };
+//http://vhgp-api.vhgp.net/api/Shipper/GetRedis
+export const getShipperRedis = async () => {
+  return await axios.get("http://vhgp-api.vhgp.net/api/Shipper/GetRedis");
+};

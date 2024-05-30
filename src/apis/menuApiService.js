@@ -72,7 +72,7 @@ export const postMenu = (menu) => {
 };
 //https://deliveryvhgp-webapi.azurewebsites.net/api/v1/menu-management/menus/s
 export const putMenu = (menu, menuId) => {
-  https: return axios.put(
+  https: return axios.patch(
     `${BASE_URL_CORAL_TEAM_VERSION}menu-management/${MENU}/${menuId}`,
     menu,
     {

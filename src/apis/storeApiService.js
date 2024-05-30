@@ -82,17 +82,23 @@ export const getListBuilding = (page, size) => {
 };
 //https://deliveryvhgp-webapi.azurewebsites.net/api/v1/areas?pageIndex=1&pageSize=20
 export const getListArea = (page, size) => {
-  return axios.get(`${BASE_URL_CORAL_TEAM_VERSION}${"areas"}?pageIndex=${page}&pageSize=${size}`, {
-    Accept: "application/json",
-    "Content-Type": "application/json",
-  });
+  return axios.get(
+    `${BASE_URL_CORAL_TEAM_VERSION}${"areas"}?pageIndex=${page}&pageSize=${size}`,
+    {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    }
+  );
 };
 //https://deliveryvhgp-webapi.azurewebsites.net/api/v1/areas/ByAreaId?areaId=2
 export const getListBuildingByAreaId = (id) => {
-  return axios.get(`${BASE_URL_CORAL_TEAM_VERSION}areas/ByAreaId?areaId=${id}`, {
-    Accept: "application/json",
-    "Content-Type": "application/json",
-  });
+  return axios.get(
+    `${BASE_URL_CORAL_TEAM_VERSION}areas/ByAreaId?areaId=${id}`,
+    {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    }
+  );
 };
 //https://deliveryvhgp-webapi.azurewebsites.net/api/v1/store-management/stores/search-name?storeName=H%E1%BA%B1ng&pageIndex=1&pageSize=20
 export const getListStoreByKey = (key, page, size) => {
@@ -106,7 +112,7 @@ export const getListStoreByKey = (key, page, size) => {
 };
 //https://deliveryvhgp-webapi.azurewebsites.net/api/v1/store-management/stores/1
 export const putStore = (store, id, imgUpdate) => {
-  return axios.put(
+  return axios.patch(
     `${BASE_URL_CORAL_TEAM_VERSION}${STORE}/stores/${id}?imgUpdate=${imgUpdate}
     `,
     store,

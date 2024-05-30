@@ -18,7 +18,7 @@ export const getListProducts = (shopId, page, size) => {
 };
 
 export const putProductInStore = (product) => {
-  return axios.put(
+  return axios.patch(
     `${BASE_URL_CORAL_TEAM_VERSION}/${PRODUCT}/${product.id}`,
     product
   );

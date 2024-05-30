@@ -29,43 +29,48 @@ import WifiTetheringOffIcon from "@mui/icons-material/WifiTetheringOff";
 import MenuIcon from "@mui/icons-material/Menu";
 import AlarmOutlinedIcon from "@mui/icons-material/AlarmOutlined";
 import RoutingLine from "./LeafRoutingMachine";
-import { getShipperRedis } from "../../../apis/shiperApiService";
+import {
+  getShipperRedis,
+  getEndPoitLocation,
+  getShipperLocation,
+} from "../../../apis/shiperApiService";
+import { pink } from "@mui/material/colors";
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
   const [orders, setOrders] = useState([
-    // {
-    //   id: "Order 1",
-    //   img: "https://images.fpt.shop/unsafe/filters:quality(5)/fptshop.com.vn/uploads/images/tin-tuc/174965/Originals/meme-la-gi-5.jpg",
-    //   latitude: "10.8750883",
-    //   longitude: "106.7992",
-    //   status: 1,
-    //   isActive: true,
-    // },
-    // {
-    //   id: "Order 2",
-    //   img: "https://images.fpt.shop/unsafe/filters:quality(90)/fptshop.com.vn/uploads/images/tin-tuc/174965/Originals/meme-la-gi-3.jpg",
-    //   latitude: "10.87796",
-    //   longitude: "106.80108",
-    //   status: 1,
-    //   isActive: false,
-    // },
-    // {
-    //   id: "Order 3",
-    //   img: "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2023/09/meme-che-15.jpg",
-    //   latitude: "10.87821",
-    //   longitude: "106.79594",
-    //   status: 1,
-    //   isActive: false,
-    // },
-    // {
-    //   id: "Order 4",
-    //   img: "https://bizweb.dktcdn.net/100/438/408/files/meme-het-cuu-yody-vn-11.jpg?v=1695455529047",
-    //   latitude: "10.88032",
-    //   longitude: "106.79516",
-    //   status: 1,
-    //   isActive: false,
-    // },
+    {
+      id: "Order 1",
+      img: "https://images.fpt.shop/unsafe/filters:quality(5)/fptshop.com.vn/uploads/images/tin-tuc/174965/Originals/meme-la-gi-5.jpg",
+      latitude: "10.8750883",
+      longitude: "106.7992",
+      status: 1,
+      isActive: true,
+    },
+    {
+      id: "Order 2",
+      img: "https://images.fpt.shop/unsafe/filters:quality(90)/fptshop.com.vn/uploads/images/tin-tuc/174965/Originals/meme-la-gi-3.jpg",
+      latitude: "10.87796",
+      longitude: "106.80108",
+      status: 1,
+      isActive: false,
+    },
+    {
+      id: "Order 3",
+      img: "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2023/09/meme-che-15.jpg",
+      latitude: "10.87821",
+      longitude: "106.79594",
+      status: 1,
+      isActive: false,
+    },
+    {
+      id: "Order 4",
+      img: "https://bizweb.dktcdn.net/100/438/408/files/meme-het-cuu-yody-vn-11.jpg?v=1695455529047",
+      latitude: "10.88032",
+      longitude: "106.79516",
+      status: 1,
+      isActive: false,
+    },
   ]);
   const [showDeliveringShippers, setShowDeliveringShippers] = useState(false);
   const [showOfflineShippers, setShowOfflineShippers] = useState(false);
@@ -86,6 +91,8 @@ export default function BasicMap() {
   const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
 
   const mapRef = useRef(null);
+
+  const [activePopup, setActivePopup] = useState(null);
 
   const handleShowDeliveringShippers = () => {
     setShowDeliveringShippers(!showDeliveringShippers);
@@ -142,7 +149,6 @@ export default function BasicMap() {
       mapRef.current.flyTo(shipperlocation, 18);
     }
   };
-
   const handleOrderClick = (order) => {
     const orderLocation = [order.latitude, order.longitude];
     mapRef.current.flyTo(orderLocation, 18);
@@ -185,16 +191,10 @@ export default function BasicMap() {
   const handleDrawLine = (shipper) => {
     setDrawLine(!drawLine);
   };
-  // const aaa = async (shipper) => {
-  //   return await axios.get(
-  //     `http://vhgp-api.vhgp.net/api/locations/${shipper.id}`
-  //   );
-  // };
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getShipperRedis();
-        console.log("dmmm ", response);
         setShippers(response.data);
         // const newShippers = response.data;
         // const newPaths = { ...shipperPaths };
@@ -211,35 +211,30 @@ export default function BasicMap() {
 
         // localStorage.setItem("shipperPaths", JSON.stringify(newPaths));
         // console.log("Final updated paths:", shipperPaths); // Logging the final path structure
-        // const newShipperAndOrder = response.data;
-
-        // const locationPromises = [];
-        // for (const shipper of newShipperAndOrder) {
-        //   const odApiPromise = await aaa(shipper);
-        //   console.log("dmmm 2", odApiPromise);
-
-        //   locationPromises.push(
-        //     Promise.all([spApiPromise, odApiPromise]).then(
-        //       ([spApiResponse, odApiResponse]) => {
-        //         return [
-        //           {
-        //             longitude: spApiResponse.data.longitude,
-        //             latitude: spApiResponse.data.latitude,
-        //           },
-        //           {
-        //             longitude: odApiResponse.data.longitude,
-        //             latitude: odApiResponse.data.latitude,
-        //           },
-        //         ];
-        //       }
-        //     )
-        //   );
-        // }
-
-        // const locations = await Promise.all(locationPromises);
-        // setShipperAndOrderPaths(locations);
-        // console.log("dmmm 11111", shipperAndOrderPaths);
-        // return locations.flat(); // Nếu bạn muốn duỗi phẳng mảng vị trí lồng nhau.
+        const newShipperAndOrder = response.data;
+        const location = {};
+        for (const shipper of newShipperAndOrder) {
+          if (shipper.status.toLowerCase() === "đang giao hàng") {
+            const odApi = (await getEndPoitLocation(shipper)).data;
+            const spApi = (await getShipperLocation(shipper)).data;
+            if (!location[shipper.id]) {
+              // Ensure the array is initialized properly
+              location[shipper.id] = [];
+            } else if (odApi && spApi) {
+              location[shipper.id].push(
+                {
+                  longitude: spApi.longitude,
+                  latitude: spApi.latitude,
+                },
+                {
+                  longitude: odApi.longitude,
+                  latitude: odApi.latitude,
+                }
+              );
+              setShipperAndOrderPaths(location); // This should be 'location', not 'locations'
+            }
+          }
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -248,17 +243,6 @@ export default function BasicMap() {
     // const intervalId = setInterval(fetchData, 3000);
     // return () => clearInterval(intervalId);
   }, []);
-
-  // var locations = [
-  //   {
-  //     longitude: 10.8431579,
-  //     latitude: 106.8365875,
-  //   },
-  //   {
-  //     longitude: 10.836891,
-  //     latitude: 106.8305375,
-  //   },
-  // ];
 
   const countShippersByStatus = (status) => {
     return shippers.filter(
@@ -344,6 +328,16 @@ export default function BasicMap() {
     }
     return color;
   }
+
+  const handleMarkerClick = (shipper) => {
+    if (activePopup === shipper.id) {
+      setActivePopup(null); // This will close the popup if it's already open
+    } else {
+      setActivePopup(shipper.id); // This will open the popup for the clicked shipper
+      handleShipperClick(shipper);
+      handleDrawLine(shipper);
+    }
+  };
 
   return (
     <>
@@ -513,11 +507,12 @@ export default function BasicMap() {
                   position={[shipper.latitude, shipper.longitude]}
                   icon={customIcon}
                   eventHandlers={{
-                    click: () => handleShipperClick(shipper),
-                    click: () => handleDrawLine(shipper),
+                    click: () => {
+                      handleMarkerClick(shipper);
+                    },
                   }}
                 >
-                  <Popup>
+                  {/* <Popup>
                     <img src={shipper.img} alt={shipper.id} />
                     <h2>{shipper.id}</h2>
                     <p>Kinh độ: {shipper.latitude}</p>
@@ -526,7 +521,19 @@ export default function BasicMap() {
                     <p>
                       Trạng thái: <StatusBadge status={shipper.status} />
                     </p>
-                  </Popup>
+                  </Popup> */}
+                  {activePopup === shipper.id && (
+                    <Popup>
+                      <img src={shipper.img} alt={shipper.id} />
+                      <h2>{shipper.id}</h2>
+                      <p>Kinh độ: {shipper.latitude}</p>
+                      <p>Vĩ độ: {shipper.longitude}</p>
+                      <p>Biển số xe: {shipper.carindentify}</p>
+                      <p>
+                        Trạng thái: <StatusBadge status={shipper.status} />
+                      </p>
+                    </Popup>
+                  )}
                 </Marker>
               ))
             : filterOrders.map((order) => (
@@ -550,7 +557,23 @@ export default function BasicMap() {
                 </Marker>
               ))}
         </MarkerClusterGroup>
-        {/* {drawLine ? <RoutingLine locations={locations} /> : ""} */}
+
+        {selectedShipperId &&
+        shipperAndOrderPaths[selectedShipperId] &&
+        drawLine ? (
+          <RoutingLine
+            locations={[
+              {
+                latitude: shipperAndOrderPaths[selectedShipperId][0].latitude,
+                longitude: shipperAndOrderPaths[selectedShipperId][0].longitude,
+              },
+              {
+                latitude: shipperAndOrderPaths[selectedShipperId][1].latitude,
+                longitude: shipperAndOrderPaths[selectedShipperId][1].longitude,
+              },
+            ]}
+          />
+        ) : null}
       </MapContainer>
     </>
   );

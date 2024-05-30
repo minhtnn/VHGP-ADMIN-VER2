@@ -84,6 +84,7 @@ const CreateOrder = () => {
     parseCommand(value);
     // setTimeout(() => validateCustomStylesForm(), 0);
   };
+  
   useEffect(() => {
     if (commandBoxValue !== "") {
       validateCustomStylesForm();
@@ -114,19 +115,19 @@ const CreateOrder = () => {
     if (parts.length === 11) {
       const [
         productInformation,
-        storeId,
+        storeCode,
         phone,
         orderTotal,
         buildingName,
-        customerNote,
         orderNote,
+        customerNote,
         customerName,
         shippingCost,
         deliveryTime,
         paymentName,
       ] = parts;
 
-      const storeOption = optionsStore.find((opt) => opt.value === storeId);
+      const storeOption = optionsStore.find((opt) => opt.value === storeCode);
       const buildingOption = optionsBuilding.find(
         (opt) => opt.label.toLowerCase() === buildingName.toLowerCase()
       );
@@ -192,9 +193,10 @@ const CreateOrder = () => {
   };
 
   const optionsStore = storeList.map((item) => {
+    console.log(item);
     return {
       label: item.name,
-      value: item.id,
+      value: item.storeCode,
     };
   });
   const optionsBuilding = buildingList.map((item) => {
@@ -378,7 +380,7 @@ const CreateOrder = () => {
         productInformation: productInformation,
         timeReceived: timeReceived,
         timeDelivery: timeDelivery,
-        paymentName: paymentName.value,
+        paymentType: paymentName.value,
         total: parseFloat(total),
         shipCost: shipCost,
         orderNote: noteOfOrder,
@@ -391,7 +393,9 @@ const CreateOrder = () => {
 
       createOrder(store.value, order)
         .then((res) => {
-          console.log(res);
+          console.log("Create order (res) :",res);
+          console.log("Store.value :",store.value);
+          
           if (res.data) {
             setIsLoadingCircle(false);
             notify("Thêm mới thành công", "Success");
@@ -450,9 +454,8 @@ const CreateOrder = () => {
                 <span style={{ color: "red" }}> * </span>
               </label>
               <span style={{ color: "grey", fontSize: "13px" }}>
-                Thông tin sản phẩm_Store Id_Số điện thoại_Total_Building
-                Name_Customer Note_Order Note_Tên khách hàng_Giá ship_Delivery
-                Time_Loại thanh toán
+                Thông tin sản phẩm_Store code_Số điện thoại_Total_Building
+                Name_Order Note_Customer Note_Tên khách hàng_Giá ship_Loại thanh toán
               </span>
               <Input
                 type="text"

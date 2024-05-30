@@ -35,7 +35,8 @@ const OrderDetail = () => {
   const [listProduct, setListProduct] = useState([]);
   const [total, setTotal] = useState("");
   const [shipCost, setShipCost] = useState("");
-  const [note, setNote] = useState("");
+  const [noteOfOrder, setNoteOfOrder] = useState("");
+  const [noteOfCustomer, setNoteOfCustomer] = useState("");
   const [cusName, setCusName] = useState("");
   const [shipperDelivery, setShipperDelivery] = useState("");
   const [shipperCollecter, setShipperCollecter] = useState("");
@@ -113,7 +114,8 @@ const OrderDetail = () => {
             setCusName(order.fullName);
             setCusBuilding(order.buildingName);
             setPaymentName(order.paymentName);
-            setNote(order.note);
+            setNoteOfOrder(order.orderNote);
+            setNoteOfCustomer(order.customerNote);
             setShipCost(order.shipCost);
             setTotal(order.total);
             setModeName(getModeName(order.modeId));
@@ -620,17 +622,17 @@ const OrderDetail = () => {
                         />
                       </div>
                     </div>
-                    <div className="col-md-12">
+                    <div className="col-md-6">
                       <div className="form-group">
-                        <label className="form-control-label">Ghi chú </label>
+                        <label className="form-control-label">Ghi chú đơn hàng </label>
                         <textarea
                           className="form-control"
                           type="text"
                           id="example-search-input"
                           //readOnly
-                          value={`${note}`}
+                          value={`${noteOfOrder}`}
                           onChange={(e) => {
-                            setNote(e.target.value);
+                            setNoteOfOrder(e.target.value);
                             setUpdatedOrder({
                               ...updatedOrder,
                               note: e.target.value,
@@ -639,7 +641,34 @@ const OrderDetail = () => {
                           style={{
                             background: `${
                               currentOrder.orderId != undefined &&
-                              currentOrder.note != note
+                              currentOrder.orderNote != noteOfOrder
+                                ? "#faf4b9"
+                                : ""
+                            }`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">Ghi chú khách hàng </label>
+                        <textarea
+                          className="form-control"
+                          type="text"
+                          id="example-search-input"
+                          //readOnly
+                          value={`${noteOfCustomer}`}
+                          onChange={(e) => {
+                            setNoteOfCustomer(e.target.value);
+                            setUpdatedOrder({
+                              ...updatedOrder,
+                              note: e.target.value,
+                            });
+                          }}
+                          style={{
+                            background: `${
+                              currentOrder.orderId != undefined &&
+                              currentOrder.customerNote != noteOfCustomer
                                 ? "#faf4b9"
                                 : ""
                             }`,

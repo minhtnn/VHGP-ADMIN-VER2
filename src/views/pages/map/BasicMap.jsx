@@ -34,7 +34,6 @@ import {
   getEndPoitLocation,
   getShipperLocation,
 } from "../../../apis/shiperApiService";
-import { pink } from "@mui/material/colors";
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
@@ -85,8 +84,6 @@ export default function BasicMap() {
   });
   const [showShipperOrOrder, setShowShipperOrOrder] = useState(true);
   const [selectedShipperId, setSelectedShipperId] = useState(null);
-
-  const [drawLine, setDrawLine] = useState(false);
 
   const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
 
@@ -149,6 +146,22 @@ export default function BasicMap() {
       mapRef.current.flyTo(shipperlocation, 18);
     }
   };
+
+  const [selectedShipperIdMap, setSelectedShipperIdMap] = useState(() => {
+    return localStorage.getItem("selectedShipperIdMap");
+  });
+
+  const handleShipperClickMap = (shipper) => {
+    if (selectedShipperIdMap === shipper.id) {
+      setSelectedShipperIdMap(null);
+      localStorage.setItem("selectedShipperIdMap", null);
+    } else {
+      setSelectedShipperIdMap(shipper.id);
+      localStorage.setItem("selectedShipperIdMap", shipper.id);
+    }
+    const shipperlocation = [shipper.latitude, shipper.longitude];
+    mapRef.current.flyTo(shipperlocation, 18);
+  };
   const handleOrderClick = (order) => {
     const orderLocation = [order.latitude, order.longitude];
     mapRef.current.flyTo(orderLocation, 18);
@@ -188,14 +201,26 @@ export default function BasicMap() {
     localStorage.setItem("mapType", newMapType ? "satellite" : "default");
   };
 
-  const handleDrawLine = (shipper) => {
-    setDrawLine(!drawLine);
+  const [drawLine, setDrawLine] = useState(() => {
+    const storedDrawLine = localStorage.getItem("drawLine");
+    return storedDrawLine === "true"; // Ensure the returned value is a boolean
+  });
+
+  // const [drawLine, setDrawLine] = useState(false);
+
+  const toggleDrawLine = () => {
+    // setDrawLine(!drawLine);
+    const newDrawLine = !drawLine;
+    setDrawLine(newDrawLine);
+    localStorage.setItem("drawLine", newDrawLine ? "true" : "false"); // Store boolean as a string
   };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getShipperRedis();
         setShippers(response.data);
+        console.log("dmmm", response.data);
         // const newShippers = response.data;
         // const newPaths = { ...shipperPaths };
 
@@ -214,25 +239,26 @@ export default function BasicMap() {
         const newShipperAndOrder = response.data;
         const location = {};
         for (const shipper of newShipperAndOrder) {
-          if (shipper.status.toLowerCase() === "đang giao hàng") {
-            const odApi = (await getEndPoitLocation(shipper)).data;
-            const spApi = (await getShipperLocation(shipper)).data;
+          if (
+            shipper.status.toLowerCase() === "đang giao hàng" &&
+            shipper.id !== "tahoanganhkhoa2014@gmail.com"
+          ) {
+            const odApi = await getEndPoitLocation(shipper);
+            const spApi = await getShipperLocation(shipper);
             if (!location[shipper.id]) {
-              // Ensure the array is initialized properly
               location[shipper.id] = [];
-            } else if (odApi && spApi) {
-              location[shipper.id].push(
-                {
-                  longitude: spApi.longitude,
-                  latitude: spApi.latitude,
-                },
-                {
-                  longitude: odApi.longitude,
-                  latitude: odApi.latitude,
-                }
-              );
-              setShipperAndOrderPaths(location); // This should be 'location', not 'locations'
             }
+            location[shipper.id].push(
+              {
+                longitude: spApi.data.longitude,
+                latitude: spApi.data.latitude,
+              },
+              {
+                longitude: odApi.data.longitude,
+                latitude: odApi.data.latitude,
+              }
+            );
+            setShipperAndOrderPaths(location);
           }
         }
       } catch (error) {
@@ -315,7 +341,6 @@ export default function BasicMap() {
     } else if (showOfflineShippers) {
       return shipper.status.toLowerCase() === "offline";
     } else {
-      // Hiển thị tất cả shipper đang active
       return shipper.isActive;
     }
   });
@@ -330,13 +355,8 @@ export default function BasicMap() {
   }
 
   const handleMarkerClick = (shipper) => {
-    if (activePopup === shipper.id) {
-      setActivePopup(null); // This will close the popup if it's already open
-    } else {
-      setActivePopup(shipper.id); // This will open the popup for the clicked shipper
-      handleShipperClick(shipper);
-      handleDrawLine(shipper);
-    }
+    handleShipperClickMap(shipper);
+    toggleDrawLine();
   };
 
   return (
@@ -506,6 +526,7 @@ export default function BasicMap() {
                   key={shipper.id}
                   position={[shipper.latitude, shipper.longitude]}
                   icon={customIcon}
+                  zIndexOffset={1000} // Đặt giá trị cao để đảm bảo marker hiển thị trên các lớp khác
                   eventHandlers={{
                     click: () => {
                       handleMarkerClick(shipper);
@@ -522,18 +543,16 @@ export default function BasicMap() {
                       Trạng thái: <StatusBadge status={shipper.status} />
                     </p>
                   </Popup> */}
-                  {activePopup === shipper.id && (
-                    <Popup>
-                      <img src={shipper.img} alt={shipper.id} />
-                      <h2>{shipper.id}</h2>
-                      <p>Kinh độ: {shipper.latitude}</p>
-                      <p>Vĩ độ: {shipper.longitude}</p>
-                      <p>Biển số xe: {shipper.carindentify}</p>
-                      <p>
-                        Trạng thái: <StatusBadge status={shipper.status} />
-                      </p>
-                    </Popup>
-                  )}
+                  <Popup>
+                    <img src={shipper.img} alt={shipper.id} />
+                    <h2>{shipper.id}</h2>
+                    <p>Kinh độ: {shipper.latitude}</p>
+                    <p>Vĩ độ: {shipper.longitude}</p>
+                    <p>Biển số xe: {shipper.carindentify}</p>
+                    <p>
+                      Trạng thái: <StatusBadge status={shipper.status} />
+                    </p>
+                  </Popup>
                 </Marker>
               ))
             : filterOrders.map((order) => (
@@ -558,18 +577,22 @@ export default function BasicMap() {
               ))}
         </MarkerClusterGroup>
 
-        {selectedShipperId &&
-        shipperAndOrderPaths[selectedShipperId] &&
-        drawLine ? (
+        {drawLine &&
+        selectedShipperIdMap &&
+        shipperAndOrderPaths[selectedShipperIdMap] ? (
           <RoutingLine
             locations={[
               {
-                latitude: shipperAndOrderPaths[selectedShipperId][0].latitude,
-                longitude: shipperAndOrderPaths[selectedShipperId][0].longitude,
+                latitude:
+                  shipperAndOrderPaths[selectedShipperIdMap][0].latitude,
+                longitude:
+                  shipperAndOrderPaths[selectedShipperIdMap][0].longitude,
               },
               {
-                latitude: shipperAndOrderPaths[selectedShipperId][1].latitude,
-                longitude: shipperAndOrderPaths[selectedShipperId][1].longitude,
+                latitude:
+                  shipperAndOrderPaths[selectedShipperIdMap][1].latitude,
+                longitude:
+                  shipperAndOrderPaths[selectedShipperIdMap][1].longitude,
               },
             ]}
           />

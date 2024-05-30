@@ -47,13 +47,13 @@ export const getShipperRedis = async () => {
 //https://api.vhgp.net/api/v1/routes/get-delivery-point/${shipper.id}
 export const getShipperLocation = async (shipper) => {
   return await axios.get(
-    `https://api.vhgp.net/api/v1/routes/get-delivery-point/${shipper.id}`
+    `https://vhgp-api.vhgp.net/api/locations/${shipper.id}`
   );
 };
 
 //http://vhgp-api.vhgp.net/api/locations/${shipper.id}
 export const getEndPoitLocation = async (shipper) => {
   return await axios.get(
-    `https://vhgp-api.vhgp.net/api/locations/${shipper.id}`
+    `https://api.vhgp.net/api/v1/routes/get-delivery-point/${shipper.id}`
   );
 };

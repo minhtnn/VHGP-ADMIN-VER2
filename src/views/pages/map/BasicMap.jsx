@@ -236,38 +236,38 @@ export default function BasicMap() {
 
         // localStorage.setItem("shipperPaths", JSON.stringify(newPaths));
         // console.log("Final updated paths:", shipperPaths); // Logging the final path structure
-        const newShipperAndOrder = response.data;
-        const location = {};
-        for (const shipper of newShipperAndOrder) {
-          if (
-            shipper.status.toLowerCase() === "đang giao hàng" &&
-            shipper.id !== "tahoanganhkhoa2014@gmail.com"
-          ) {
-            const odApi = await getEndPoitLocation(shipper);
-            const spApi = await getShipperLocation(shipper);
-            if (!location[shipper.id]) {
-              location[shipper.id] = [];
-            }
-            location[shipper.id].push(
-              {
-                longitude: spApi.data.longitude,
-                latitude: spApi.data.latitude,
-              },
-              {
-                longitude: odApi.data.longitude,
-                latitude: odApi.data.latitude,
-              }
-            );
-            setShipperAndOrderPaths(location);
-          }
-        }
+        // const newShipperAndOrder = response.data;
+        // const location = {};
+        // for (const shipper of newShipperAndOrder) {
+        //   if (
+        //     shipper.status.toLowerCase() === "đang giao hàng" &&
+        //     shipper.id === "an@gmail.com"
+        //   ) {
+        //     const odApi = await getEndPoitLocation(shipper);
+        //     const spApi = await getShipperLocation(shipper);
+        //     if (!location[shipper.id]) {
+        //       location[shipper.id] = [];
+        //     }
+        //     location[shipper.id].push(
+        //       {
+        //         longitude: spApi.data.longitude,
+        //         latitude: spApi.data.latitude,
+        //       },
+        //       {
+        //         longitude: odApi.data.longitude,
+        //         latitude: odApi.data.latitude,
+        //       }
+        //     );
+        //     setShipperAndOrderPaths(location);
+        //   }
+        // }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
     fetchData();
-    // const intervalId = setInterval(fetchData, 3000);
-    // return () => clearInterval(intervalId);
+    const intervalId = setInterval(fetchData, 3000);
+    return () => clearInterval(intervalId);
   }, []);
 
   const countShippersByStatus = (status) => {
@@ -577,7 +577,7 @@ export default function BasicMap() {
               ))}
         </MarkerClusterGroup>
 
-        {drawLine &&
+        {/* {drawLine &&
         selectedShipperIdMap &&
         shipperAndOrderPaths[selectedShipperIdMap] ? (
           <RoutingLine
@@ -596,7 +596,7 @@ export default function BasicMap() {
               },
             ]}
           />
-        ) : null}
+        ) : null} */}
       </MapContainer>
     </>
   );

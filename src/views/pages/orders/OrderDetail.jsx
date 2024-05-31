@@ -635,7 +635,7 @@ const OrderDetail = () => {
                             setNoteOfOrder(e.target.value);
                             setUpdatedOrder({
                               ...updatedOrder,
-                              note: e.target.value,
+                              orderNote: e.target.value,
                             });
                           }}
                           style={{
@@ -662,7 +662,7 @@ const OrderDetail = () => {
                             setNoteOfCustomer(e.target.value);
                             setUpdatedOrder({
                               ...updatedOrder,
-                              note: e.target.value,
+                              customerNote: e.target.value,
                             });
                           }}
                           style={{

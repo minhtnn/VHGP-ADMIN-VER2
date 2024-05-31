@@ -227,16 +227,17 @@ export const getTimeConvert = (time) => {
   let hour = moment(time).format("LT");
   return `${date}, ${hour}`;
 };
+
 export const getPaymentStatusName = (payment) => {
   switch (payment) {
     case 0:
-      return "THTM";
+      return { abbreviation: "THTM", fullName: "Thu hộ tiền mặt" };
     case 1:
-      return "THCK";
+      return { abbreviation: "THCK", fullName: "Thu hộ chuyển khoản" };
     case 2:
-      return "Đã Thanh Toán";
-
+      return { abbreviation: "DTT", fullName: "Đã thanh toán" };
     default:
-      return "---";
+      return { abbreviation: "---", fullName: "---" };
   }
 };
+

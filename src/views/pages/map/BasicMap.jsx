@@ -240,8 +240,8 @@ export default function BasicMap() {
       }
     };
     fetchData();
-    // const intervalId = setInterval(fetchData, 3000);
-    // return () => clearInterval(intervalId);
+    const intervalId = setInterval(fetchData, 3000);
+    return () => clearInterval(intervalId);
   }, []);
 
   const countShippersByStatus = (status) => {

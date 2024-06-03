@@ -381,7 +381,7 @@ export default function BasicMap() {
           ariaLabel="SpeedDial example"
           sx={{ position: "absolute", top: 16, right: 16 }}
           icon={<MenuIcon />}
-          direction="down"
+          direction="left"
         >
           {actions.map((action) => (
             <SpeedDialAction
@@ -408,8 +408,8 @@ export default function BasicMap() {
             }}
             style={{
               position: "absolute",
-              top: "1%",
-              right: "6.5%",
+              top: "85px",
+              right: "15px",
               zIndex: 1000,
             }}
           >
@@ -463,8 +463,8 @@ export default function BasicMap() {
             }}
             style={{
               position: "absolute",
-              top: "1%",
-              right: "6.5%",
+              top: "85px",
+              right: "15px",
               zIndex: 1000,
             }}
           >

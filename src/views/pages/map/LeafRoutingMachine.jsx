@@ -1,44 +1,52 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import L from "leaflet";
 import "leaflet-routing-machine";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import { useMap } from "react-leaflet";
+import iconEndPoint from "./icon/location.png";
+import ShipperIcon from "./icon/shipper.png";
 
-L.Marker.prototype.options.icon = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/128/7541/7541900.png",
-  iconSize: [38, 38],
+const startIcon = new L.Icon({
+  iconUrl: ShipperIcon,
+  iconSize: [40, 40],
+});
+
+const endIcon = new L.Icon({
+  iconUrl: iconEndPoint,
+  iconSize: [50, 50],
 });
 
 const RoutingLine = ({ locations }) => {
   const map = useMap();
 
   useEffect(() => {
-    // Ensure that there are exactly two locations to create a route
     if (!map || locations.length !== 2) return;
 
-    // Create routing control
+    const startMarker = L.marker(
+      [locations[0].latitude, locations[0].longitude],
+      { icon: startIcon }
+    ).addTo(map);
+    const endMarker = L.marker(
+      [locations[1].latitude, locations[1].longitude],
+      { icon: endIcon }
+    ).addTo(map);
+
     const routingControl = L.Routing.control({
       waypoints: [
         L.latLng(locations[0].latitude, locations[0].longitude),
         L.latLng(locations[1].latitude, locations[1].longitude),
       ],
       lineOptions: {
-        styles: [{ color: "#0000FF", opacity: 0.8, weight: 6 }], // Customize route line color and style
+        styles: [{ color: "#0000FF", opacity: 0.8, weight: 6 }],
       },
+      createMarker: () => null,
       routeWhileDragging: false,
       addWaypoints: false,
       draggableWaypoints: false,
       fitSelectedRoutes: true,
       showAlternatives: false,
+      show: false, // Ẩn bảng chỉ đường
     }).addTo(map);
-
-    // Optionally, hide routing direction container
-    const routingContainers = document.querySelectorAll(
-      ".leaflet-routing-container.leaflet-bar.leaflet-control"
-    );
-    routingContainers.forEach((container) => {
-      container.style.display = "none";
-    });
 
     // Listen for the routesfound event
     routingControl.on("routesfound", function (e) {
@@ -51,14 +59,14 @@ const RoutingLine = ({ locations }) => {
       );
     });
 
-    // Cleanup function to remove routing control when component unmounts or locations change
     return () => {
-      if (map && routingControl) {
-        map.removeControl(routingControl);
-      }
+      map.removeControl(routingControl);
+      map.removeLayer(startMarker);
+      map.removeLayer(endMarker);
     };
-  }, [map, locations]); // Depend on map and locations to re-initialize when they change
+  }, [map, locations]); // Ensure dependencies are correct
 
   return null;
 };
+
 export default RoutingLine;

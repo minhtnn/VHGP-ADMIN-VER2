@@ -34,7 +34,7 @@
 
 
 .cluster-icon:hover {
-  background-color: #d55312; 
+  background-color: #0000FF; 
 }
 
 
@@ -70,6 +70,8 @@
 }
 
 .leaflet-popup-content h2 {
+  display: flex;
+  justify-content: center;
   margin-bottom: 5px; 
   font-size: 18px; 
   font-weight: bold;
@@ -81,6 +83,12 @@
   margin-bottom: 10px; 
   color: #555;
 }
+
+/*Ẩn bảng chỉ đường*/
+.leaflet-routing-container {
+  display: none !important;
+}
+
 
 
 

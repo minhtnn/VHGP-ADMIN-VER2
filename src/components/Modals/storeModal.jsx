@@ -37,6 +37,8 @@ export const StoreModal = ({ handleReload }) => {
     buildingList,
     setStoreModal,
   } = useContext(AppContext)
+  const  [storeCode, setStoreCode] = useState("");
+  const [storeCodeState, setStoreCodeState] = useState("");
   const [storeName, setStoreName] = useState('')
   const [storeNameState, setStoreNameState] = useState('')
   const [phone, setPhone] = useState('')
@@ -92,6 +94,13 @@ export const StoreModal = ({ handleReload }) => {
       setPhoneMessage('Số điện thoại không hợp lệ')
     }
 
+    if(storeCode === '') {
+      valid = false 
+      setStoreCodeState('invalid')
+    } else {
+      setStoreCodeState('valid')
+    }
+
     if (phone !== '') {
       if (!checkPhoneValid()) {
         valid = false
@@ -137,6 +146,7 @@ export const StoreModal = ({ handleReload }) => {
     if (storeModal.id) {
       setIsLoading(true)
       setStoreName(storeModal.name)
+      setStoreCode(storeModal.storeCode)
       setPhone(storeModal.phone || '')
       setBuilding({
         label: storeModal.buildingStore,
@@ -188,6 +198,7 @@ export const StoreModal = ({ handleReload }) => {
       let store = {
         id: storeModal.id,
         name: storeName,
+        storeCode: storeCode,
         buildingId: building.value,
         brandId: brand.value,
         rate: '',
@@ -466,7 +477,30 @@ export const StoreModal = ({ handleReload }) => {
                                     </div>
                                   </div>
                                 </div>
-                                <div className="col-md-6">
+
+                                <div className="col-md-3">
+                                  <div className="form-group">
+                                    <label className="form-control-label">
+                                      Mã cửa hàng{' '}
+                                    </label>
+                                    <Input
+                                      valid={storeCodeState === 'valid'}
+                                      invalid={storeCodeState === 'invalid'}
+                                      className="form-control"
+                                      type="search"
+                                      id="example-search-input"
+                                      value={`${storeCode}`}
+                                      onChange={(e) => {
+                                        setStoreCode(e.target.value)
+                                      }}
+                                    />
+                                    <div className="invalid-feedback">
+                                      Mã cửa hàng không được để trống
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="col-md-3">
                                   <div className="form-group">
                                     <label className="form-control-label">
                                       Số điện thoại{' '}

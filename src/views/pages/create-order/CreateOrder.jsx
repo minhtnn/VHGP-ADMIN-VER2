@@ -61,22 +61,15 @@ const CreateOrder = () => {
   const [shipCostMessage, setShipCostMessage] = useState("");
 
   const [noteOfOrder, setNoteOfOrder] = useState("");
+  const [noteOfOrderState, setNoteOfOrderState] = useState("");
+  const [noteOfOrderMessage, setNoteOfOrderMessage] = useState("");
   const [noteOfCustomer, setNoteOfCustomer] = useState("");
+  const [noteOfCustomerState, setNoteOfCustomerState] = useState("");
+  const [noteOfCustomerMessage, setNoteOfCustomerMessage] = useState("");
 
   const [paymentName, setPaymentName] = useState("");
   const [paymentNameState, setPaymentNameState] = useState("");
   const [isLoadingCircle, setIsLoadingCircle] = useState(false);
-
-  const handlePaste = (e) => {
-    // Ngăn chặn hành động mặc định của sự kiện paste
-    e.preventDefault();
-    // Lấy dữ liệu được dán vào
-    const pastedData = e.clipboardData.getData("text");
-    // Xử lý dữ liệu và cập nhật các trường dữ liệu
-    parseCommand(pastedData);
-    // Kiểm tra tính hợp lệ của các trường dữ liệu và cập nhật trạng thái
-    // setTimeout(() => validateCustomStylesForm(), 0);
-  };
 
   const handleCommandChange = (e) => {
     const value = e.target.value;
@@ -84,19 +77,19 @@ const CreateOrder = () => {
     parseCommand(value);
     // setTimeout(() => validateCustomStylesForm(), 0);
   };
-  
+
   useEffect(() => {
     if (commandBoxValue !== "") {
       validateCustomStylesForm();
     }
   }, [
-    productInformation,
+    // productInformation,
     store,
     total,
-    shipCost,
     timeReceived,
-    timeDelivery,
+    // timeDelivery,
     paymentName,
+    shipCost,
     phone,
     name,
     building,
@@ -110,21 +103,19 @@ const CreateOrder = () => {
     return false;
   };
 
+
   const parseCommand = (command) => {
     const parts = command.split("_");
-    if (parts.length === 11) {
+    if (parts.length === 8) {
       const [
-        productInformation,
         storeCode,
-        phone,
-        orderTotal,
-        buildingName,
         orderNote,
-        customerNote,
+        phone,
         customerName,
-        shippingCost,
-        deliveryTime,
+        buildingName,
+        orderTotal,
         paymentName,
+        customerNote,
       ] = parts;
 
       const storeOption = optionsStore.find((opt) => opt.value === storeCode);
@@ -166,9 +157,6 @@ const CreateOrder = () => {
       setTotal(orderTotal);
       setTotalState(orderTotal >= 0 ? "valid" : "invalid");
 
-      setShipCost(shippingCost);
-      setShipCostState(shippingCost >= 0 ? "valid" : "invalid");
-
       setName(customerName);
       setNameState(
         customerName.trim() !== "" &&
@@ -178,7 +166,7 @@ const CreateOrder = () => {
           : "invalid"
       );
 
-      setProductInformation(productInformation);
+      // setProductInformation(productInformation);
 
       setNoteOfCustomer(customerNote);
       setNoteOfOrder(orderNote);
@@ -193,7 +181,6 @@ const CreateOrder = () => {
   };
 
   const optionsStore = storeList.map((item) => {
-    console.log(item);
     return {
       label: item.name,
       value: item.storeCode,
@@ -241,31 +228,43 @@ const CreateOrder = () => {
   const validateCustomStylesForm = () => {
     let valid = true;
 
-    // Product information
-    switch (true) {
-      case productInformation.trim() === "":
-        valid = false;
-        setProductInformationState("invalid");
-        setProductInformationMessage("Thông tin sản phẩm không được để trống");
-        break;
-      case productInformation.length > 100:
-        valid = false;
-        setProductInformationState("invalid");
-        setProductInformationMessage(
-          "Thông tin sản phẩm không được vượt quá 100 kí tự"
-        );
-        break;
-      case !/^[A-Za-z0-9\sÀ-ỹ]{1,100}$/.test(productInformation):
-        valid = false;
-        setProductInformationState("invalid");
-        setProductInformationMessage(
-          "Thông tin sản phẩm chỉ chứa kí tự chữ, số và khoảng trắng"
-        );
-        break;
-      default:
-        setProductInformationState("valid");
-        setProductInformationMessage("");
+    // order note
+    if (noteOfOrder === "") {
+      
+      valid = false;
+      setNoteOfOrderState("invalid");
+      setNoteOfOrderMessage("Ghi chú đơn hàng không được để trống");
+    } else {
+      setNoteOfOrderState("valid");
+      setNoteOfOrderMessage("");
     }
+    
+
+    // Product information
+    // switch (true) {
+    //   case productInformation.trim() === "":
+    //     valid = false;
+    //     setProductInformationState("invalid");
+    //     setProductInformationMessage("Thông tin sản phẩm không được để trống");
+    //     break;
+    //   case productInformation.length > 100:
+    //     valid = false;
+    //     setProductInformationState("invalid");
+    //     setProductInformationMessage(
+    //       "Thông tin sản phẩm không được vượt quá 100 kí tự"
+    //     );
+    //     break;
+    //   case !/^[A-Za-z0-9\sÀ-ỹ]{1,100}$/.test(productInformation):
+    //     valid = false;
+    //     setProductInformationState("invalid");
+    //     setProductInformationMessage(
+    //       "Thông tin sản phẩm chỉ chứa kí tự chữ, số và khoảng trắng"
+    //     );
+    //     break;
+    //   default:
+    //     setProductInformationState("valid");
+    //     setProductInformationMessage("");
+    // }
 
     if (timeReceived === "") {
       valid = false;
@@ -374,10 +373,11 @@ const CreateOrder = () => {
   };
 
   const handleSubmit = () => {
+    console.log(validateCustomStylesForm)
     if (validateCustomStylesForm()) {
       setIsLoadingCircle(true);
       let order = {
-        productInformation: productInformation,
+        // productInformation: productInformation,
         timeReceived: timeReceived,
         timeDelivery: timeDelivery,
         paymentType: paymentName.value,
@@ -393,13 +393,12 @@ const CreateOrder = () => {
 
       createOrder(store.value, order)
         .then((res) => {
-          console.log("Create order (res) :",res);
-          console.log("Store.value :",store.value);
+          console.log("Create order (res) :", res);
           
           if (res.data) {
             setIsLoadingCircle(false);
             notify("Thêm mới thành công", "Success");
-            setProductInformation("");
+            // setProductInformation("");
             setStore("");
             setBuilding("");
             setName("");
@@ -410,6 +409,7 @@ const CreateOrder = () => {
             setPaymentName("");
             setShipCost("");
             setTimeReceived("");
+            setTimeDelivery("");
           }
         })
         .catch((error) => {
@@ -454,8 +454,7 @@ const CreateOrder = () => {
                 <span style={{ color: "red" }}> * </span>
               </label>
               <span style={{ color: "grey", fontSize: "13px" }}>
-                Thông tin sản phẩm_Store code_Số điện thoại_Total_Building
-                Name_Order Note_Customer Note_Tên khách hàng_Giá ship_Loại thanh toán
+                Mã cửa hàng_Thông tin sản phẩm_Số điện thoại_Tên khách hàng_Mã toà nhà_Tổng tiền_Loại thanh toán_Ghi chú
               </span>
               <Input
                 type="text"
@@ -463,7 +462,6 @@ const CreateOrder = () => {
                 placeholder="Nhập command"
                 value={commandBoxValue}
                 onChange={handleCommandChange}
-                // onPaste={handlePaste}
                 className={
                   commandBoxValueState === "invalid" ? "is-invalid" : ""
                 }
@@ -507,8 +505,41 @@ const CreateOrder = () => {
               <div className="col-md-12">
                 <form>
                   <div className="row">
-                    {/* Product Information */}
+                    {/* Ghi chú của đơn hàng - thông tin sản phẩm*/}
                     <div className="col-md-6">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Ghi chú đơn hàng{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <Input
+                          valid={noteOfOrderState === "valid"}
+                          invalid={noteOfOrderState === "invalid"}
+                          className="form-control"
+                          type="text"
+                          value={`${noteOfOrder}`}
+                          
+                          onChange={(e) => {
+                            setNoteOfOrder(e.target.value);
+                          }}
+                        />
+                        {noteOfOrderState === "invalid" && (
+                          <div
+                            className="invalid"
+                            style={{
+                              fontSize: "80%",
+                              color: "#fb6340",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {noteOfOrderMessage}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Product Information */}
+                    {/* <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
                           Thông tin sản phẩm{" "}
@@ -538,13 +569,13 @@ const CreateOrder = () => {
                           </div>
                         )}
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Time Received */}
                     <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
-                          Thời gian nhận hàng{" "}
+                          Thời gian nhận hàng dự kiến{" "}
                           <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
@@ -619,7 +650,6 @@ const CreateOrder = () => {
                               storeState === "invalid"
                             )}
                             value={store}
-                            onPaste={handlePaste}
                             onChange={(e) => {
                               setStore(e);
                             }}
@@ -643,7 +673,6 @@ const CreateOrder = () => {
                           type="text"
                           id="example-search-input"
                           value={`${total}`}
-                          onPaste={handlePaste}
                           onChange={(e) => {
                             if (parseFloat(e.target.value) < 0) {
                               setTotal("0");
@@ -670,7 +699,6 @@ const CreateOrder = () => {
                           type="text"
                           id="example-search-input"
                           value={`${shipCost}`}
-                          onPaste={handlePaste}
                           onChange={(e) => {
                             if (parseFloat(e.target.value) < 0) {
                               setShipCost("0");
@@ -705,7 +733,7 @@ const CreateOrder = () => {
                               paymentNameState === "invalid"
                             )}
                             value={paymentName}
-                            onPaste={handlePaste}
+                            // onPaste={handlePaste}
                             onChange={(e) => {
                               setPaymentName(e);
                             }}
@@ -727,11 +755,10 @@ const CreateOrder = () => {
                     </div>
 
                     {/* NOTE OF ORDER */}
-                    <div className="col-md-12">
+                    {/* <div className="col-md-12">
                       <div className="form-group">
                         <label className="form-control-label">
                           Ghi chú của đơn hàng
-                          {/* <span style={{ color: "red" }}>*</span> */}
                         </label>
                         <textarea
                           rows={3}
@@ -744,7 +771,7 @@ const CreateOrder = () => {
                           }}
                         />
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* TITLE Customer */}
                     <div
@@ -777,7 +804,6 @@ const CreateOrder = () => {
                           type="search"
                           id="example-search-input"
                           value={`${name}`}
-                          onPaste={handlePaste}
                           onChange={(e) => {
                             setName(e.target.value);
                           }}
@@ -810,7 +836,6 @@ const CreateOrder = () => {
                           type="search"
                           id="example-search-input"
                           value={phone}
-                          onPaste={handlePaste}
                           onChange={(e) => {
                             setPhone(e.target.value);
                           }}
@@ -849,7 +874,6 @@ const CreateOrder = () => {
                               buildingState === "invalid"
                             )}
                             value={building}
-                            onPaste={handlePaste}
                             onChange={(e) => {
                               setBuilding(e);
                             }}

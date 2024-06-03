@@ -13,6 +13,12 @@ import "moment/locale/vi";
 export const OrderItem = ({ data, index }) => {
   const [tooltipOpenEdit, setTooltipOpenEdit] = useState(false);
   const toggleEdit = () => setTooltipOpenEdit(!tooltipOpenEdit);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+  const [tooltipOpenPayment, setTooltipOpenPayment] = useState(false);
+  const toggleTooltipPayment = () => setTooltipOpenPayment(!tooltipOpenPayment);
+  const paymentStatus = getPaymentStatusName(data.paymentName);
+
   const { setOpenModal, setorderModal } = useContext(AppContext);
   let history = useHistory();
   const getStatus = (status) => {
@@ -22,11 +28,27 @@ export const OrderItem = ({ data, index }) => {
   return (
     <tr>
       {/* MÃ ĐƠN */}
+      
       <td
         className="budget table-text"
         style={{ padding: "1.7rem 0rem 1.7rem 1.5rem" }}
       >
-        {data.id}
+        {/* Sử dụng Tooltip để hiển thị tên cửa hàng khi hover vào */}
+        <Tooltip
+          placement="top"
+          isOpen={tooltipOpen}
+          target={"StoreName-" + index}
+          toggle={toggleTooltip}
+        >
+          {data.storeName} {/* Thông tin tên cửa hàng */}
+        </Tooltip>
+        <span
+          id={"StoreName-" + index}
+          // className="cusor"
+          style={{ fontSize: 14 }}
+        >
+          {data.id} {/* Hiển thị mã đơn hàng */}
+        </span>
       </td>
 
       {/* CỬA HÀNG  */}
@@ -95,8 +117,8 @@ export const OrderItem = ({ data, index }) => {
         {getTimeConvert(data.time)}
       </td>
 
-      {/* THANH TOÁN */}
-      <td
+     {/* THANH TOÁN */}
+     <td
         className="budget table-text bold"
         style={{
           padding: "1.7rem 0rem 1.7rem 1.5rem",
@@ -109,8 +131,23 @@ export const OrderItem = ({ data, index }) => {
               : null,
         }}
       >
-        {getPaymentStatusName(data.paymentName)}
+        <Tooltip
+          placement="top"
+          isOpen={tooltipOpenPayment}
+          target={"PaymentStatus-" + index}
+          toggle={toggleTooltipPayment}
+        >
+          {paymentStatus.fullName} {/* Hiển thị đầy đủ khi hover */}
+        </Tooltip>
+        <span
+          id={"PaymentStatus-" + index}
+          // className="cusor"
+          style={{ fontSize: 14 }}
+        >
+          {paymentStatus.abbreviation} {/* Hiển thị viết tắt */}
+        </span>
       </td>
+      
       <td
         className="budget table-text"
         style={{ padding: "1.7rem 0rem 1.7rem 1.5rem" }}

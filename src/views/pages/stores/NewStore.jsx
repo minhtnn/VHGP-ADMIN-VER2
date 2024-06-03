@@ -27,6 +27,8 @@ const unitData = ["Gam", "Kg", "Chai", "Hủ", "Hộp", "Cái"];
 
 export const NewStore = () => {
   const { brandList, storeCategoryList, buildingList } = useContext(AppContext);
+  const [storeCode, setStoreCode] = useState("");
+  const [storeCodeState, setStoreCodeState] = useState("");
   const [storeName, setStoreName] = useState("");
   const [storeNameState, setStoreNameState] = useState("");
   const [phone, setPhone] = useState("");
@@ -111,6 +113,14 @@ export const NewStore = () => {
 
   const validateCustomStylesForm = () => {
     let valid = true;
+
+    if (storeCode === "") {
+      valid = false;
+      setStoreCodeState("invalid");
+    } else {
+      setStoreCodeState("valid");
+    }
+
     if (storeName === "") {
       valid = false;
       setStoreNameState("invalid");
@@ -194,6 +204,7 @@ export const NewStore = () => {
       let store = {
         id: userName,
         password: password,
+        storeCode: storeCode,
         name: storeName,
         buildingId: building.value,
         brandId: brand.value,
@@ -397,7 +408,30 @@ export const NewStore = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="col-md-6">
+
+                    <div className="col-md-3">
+                      <div className="form-group">
+                        <label className="form-control-label">
+                          Mã cửa hàng {" "}
+                        </label>
+                        <Input 
+                        valid={storeCodeState === "valid"} 
+                        invalid={storeCodeState === "invalid"}
+                        className="form-control"
+                          type="search"
+                          id="example-search-input"
+                        value={`${storeCode}`}
+                        onChange={(e) => {
+                          setStoreCode(e.target.value);
+                        }}
+                        />
+                        <div className="invalid-feedback">
+                          Mã cửa hàng không được để trống
+                        </div>                    
+                      </div>
+                    </div>      
+
+                    <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
                           Số điện thoại{" "}
@@ -418,6 +452,7 @@ export const NewStore = () => {
                         </div>
                       </div>
                     </div>
+
                     <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">

@@ -7,6 +7,7 @@ export const getListOrder = (
   SearchByPayment,
   SearchByStatus,
   SearchByMode,
+  SearchByStoreCode,
   page,
   size
 ) => {
@@ -22,6 +23,9 @@ export const getListOrder = (
   }
   if (SearchByMode !== "") {
     url = url + `&SearchByMode=${SearchByMode}`;
+  }
+  if (SearchByStoreCode !== "") {
+    url = url + `&SearchByStoreCode=${SearchByStoreCode}`;
   }
   return axios.get(
     `${BASE_URL_CORAL_TEAM_VERSION}${ORDER}/orders?pageIndex=${page}&pageSize=${size}${url}`,

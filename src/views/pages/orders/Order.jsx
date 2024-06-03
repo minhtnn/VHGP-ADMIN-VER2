@@ -16,6 +16,7 @@ import {
   Row,
   Spinner,
   Table,
+  Input,
 } from "reactstrap";
 import { getListOrder } from "../../../apis/orderApiService";
 import SimpleHeader from "../../../components/Headers/SimpleHeader";
@@ -23,10 +24,13 @@ import { statusTypeOptions } from "../../../constants";
 import { OrderItem } from "./OrderItem";
 import Lottie from "react-lottie";
 import animationData from "../../../assets/loading.json";
+
 // import "moment/locale/en";
 
 export const Order = () => {
   const [orders, setOrders] = useState([]);
+  const [storeCode, setStoreCode] = useState("");
+  const [storeCodeState, setStoreCodeState] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [payment, setPayment] = useState("");
   // const [paymentFilter, setPaymentFilter] = useState("");
@@ -53,6 +57,7 @@ export const Order = () => {
     payment: "",
     status: "",
     mode: "",
+    storeCode: "",
   });
   // const [statusFilter, setStatusFilter] = useState("");
   // const [dateFilter, setDateFilter] = useState("");
@@ -87,15 +92,25 @@ export const Order = () => {
     return () => {};
   }, []);
 
-  const handleGetOrder = (date, payment, status, mode, pageIndex, size) => {
+  const handleGetOrder = (
+    date,
+    payment,
+    status,
+    mode,
+    storeCode,
+    pageIndex,
+    size
+  ) => {
     let dateFilter = "";
     let paymentFilter = "";
     let statusFilter = "";
     let modeFilter = "";
+    let storeCodeFilter = "";
     dateFilter = date;
     paymentFilter = payment;
     statusFilter = status;
     modeFilter = mode;
+    storeCodeFilter = storeCode;
     setIsLoading(true);
 
     getListOrder(
@@ -103,6 +118,7 @@ export const Order = () => {
       paymentFilter === -1 ? "" : paymentFilter,
       statusFilter === -1 ? -1 : statusFilter,
       modeFilter === 0 ? "" : modeFilter,
+      storeCodeFilter === "" ? "" : storeCodeFilter,
       pageIndex,
       size
     )
@@ -139,7 +155,7 @@ export const Order = () => {
     // setDateOrder("");
     // handleGetOrder("");
 
-    getListOrder("", "", "", "", page, pageSize)
+    getListOrder("", "", "", "", "", page, pageSize)
       .then((res) => {
         const { data } = res.data;
         const orders = data;
@@ -165,6 +181,24 @@ export const Order = () => {
 
     return () => {};
   }, []);
+
+  const customStylesStoreCode = {
+    control: (provided, state) => ({
+      ...provided,
+      background: "#fff",
+      borderColor: "#9e9e9e",
+      minHeight: "30px",
+      height: "46px",
+      width: "200px",
+      boxShadow: state.isFocused ? null : null,
+      borderRadius: "0.5rem",
+    }),
+
+    input: (provided, state) => ({
+      ...provided,
+      margin: "5px",
+    }),
+  };
 
   const customStylesPayment = {
     control: (provided, state) => ({
@@ -310,6 +344,7 @@ export const Order = () => {
                           filter.payment,
                           filter.status,
                           filter.mode,
+                          filter.storeCode,
                           1,
                           pageSize
                         );
@@ -332,6 +367,7 @@ export const Order = () => {
                           e.value,
                           filter.status,
                           filter.mode,
+                          filter.storeCode,
                           1,
                           pageSize
                         );
@@ -372,6 +408,7 @@ export const Order = () => {
                           filter.payment,
                           e.value,
                           filter.mode,
+                          filter.storeCode,
                           1,
                           pageSize
                         );
@@ -409,6 +446,7 @@ export const Order = () => {
                           filter.date,
                           filter.payment,
                           filter.status,
+                          filter.storeCode,
                           e.value,
                           1,
                           pageSize
@@ -434,6 +472,26 @@ export const Order = () => {
                         //         })
                         //         .catch((error) => console.log(error));
                         // }
+                      }}
+                    />
+                    <Input
+                      placeholder="Mã đơn hàng"
+                      styles={customStylesStoreCode}
+                      value={storeCode}
+                      onChange={(e) => {
+                        console.log(e.target.value); // Đảm bảo rằng giá trị này không phải undefined
+                        setStoreCode(e.target.value); // Sử dụng e.target.value để lấy giá trị đúng
+                        setFilter({ ...filter, storeCode: e.target.value });
+                        handleGetOrder(
+                          filter.date,
+                          filter.payment,
+                          filter.status,
+                          filter.mode,
+                          e.target.value, // Sử dụng e.target.value
+                          1,
+                          pageSize
+                        );
+                        setPage(1);
                       }}
                     />
                   </Form>
@@ -582,6 +640,7 @@ export const Order = () => {
                           filter.payment,
                           filter.status,
                           filter.mode,
+                          filter.storeCode,
                           page,
                           e.value
                         );
@@ -607,6 +666,7 @@ export const Order = () => {
                               filter.payment,
                               filter.status,
                               filter.mode,
+                              filter.storeCode,
                               page - 1,
                               pageSize
                             );
@@ -633,6 +693,7 @@ export const Order = () => {
                               filter.payment,
                               filter.status,
                               filter.mode,
+                              filter.storeCode,
                               page + 1,
                               pageSize
                             );

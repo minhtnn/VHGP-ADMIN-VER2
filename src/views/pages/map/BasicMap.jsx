@@ -41,46 +41,14 @@ import {
   getEndPoitLocation,
   getShipperLocation,
 } from "../../../apis/shiperApiService";
+import { getOrderWaiting } from "../../../apis/orderApiService";
 import shipperIcon from "./icon/shipper.png";
-import order from "./icon/address.png";
+import orderIcon from "./icon/address.png";
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
   const [open, setOpen] = useState(false);
-  const [orders, setOrders] = useState([
-    {
-      id: "Order 1",
-      img: "https://images.fpt.shop/unsafe/filters:quality(5)/fptshop.com.vn/uploads/images/tin-tuc/174965/Originals/meme-la-gi-5.jpg",
-      latitude: "10.8750883",
-      longitude: "106.7992",
-      status: 1,
-      isActive: true,
-    },
-    {
-      id: "Order 2",
-      img: "https://images.fpt.shop/unsafe/filters:quality(90)/fptshop.com.vn/uploads/images/tin-tuc/174965/Originals/meme-la-gi-3.jpg",
-      latitude: "10.87796",
-      longitude: "106.80108",
-      status: 1,
-      isActive: false,
-    },
-    {
-      id: "Order 3",
-      img: "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2023/09/meme-che-15.jpg",
-      latitude: "10.87821",
-      longitude: "106.79594",
-      status: 1,
-      isActive: false,
-    },
-    {
-      id: "Order 4",
-      img: "https://bizweb.dktcdn.net/100/438/408/files/meme-het-cuu-yody-vn-11.jpg?v=1695455529047",
-      latitude: "10.88032",
-      longitude: "106.79516",
-      status: 1,
-      isActive: false,
-    },
-  ]);
+  const [orders, setOrders] = useState([]);
   const [showDeliveringShippers, setShowDeliveringShippers] = useState(false);
   const [showOfflineShippers, setShowOfflineShippers] = useState(false);
   const [showAvailableShippers, setShowAvailableShippers] = useState(false);
@@ -103,14 +71,13 @@ export default function BasicMap() {
 
   const mapRef = useRef(null);
 
-  const [activePopup, setActivePopup] = useState(null);
-
   const onClose = () => {
     setOpen(false);
     setShowAvailableShippers(false);
     setShowOfflineShippers(false);
     setShowOrderTakingShippers(false);
     setShowDeliveringShippers(false);
+    setShowAvailableOrder(false);
   };
 
   const handleShowDeliveringShippers = () => {
@@ -205,7 +172,7 @@ export default function BasicMap() {
   };
 
   const customIcon = new Icon({
-    iconUrl: showShipperOrOrder ? shipperIcon : order,
+    iconUrl: showShipperOrOrder ? shipperIcon : orderIcon,
     iconSize: [45, 45],
   });
 
@@ -240,6 +207,9 @@ export default function BasicMap() {
         const response = await getShipperRedis();
         setShippers(response.data);
         console.log("Check Shipper", response.data);
+        const orderResponse = await getOrderWaiting();
+        setOrders(orderResponse.data);
+        console.log("check order", orderResponse.data);
         // const newShippers = response.data;
         // const newPaths = { ...shipperPaths };
 
@@ -258,11 +228,9 @@ export default function BasicMap() {
         const newShipperAndOrder = response.data;
         const location = {};
         for (const shipper of newShipperAndOrder) {
-          if (shipper.status === "1" && shipper.id === "an@gmail.com") {
+          if (shipper.id === "an@gmail.com") {
             const odApi = await getEndPoitLocation(shipper);
-            console.log("...", odApi);
             const spApi = await getShipperLocation(shipper);
-            console.log("???", spApi);
             if (!location[shipper.id]) {
               location[shipper.id] = [];
             }
@@ -322,7 +290,7 @@ export default function BasicMap() {
   const actions_2 = [
     {
       icon: <OnlinePrediction />,
-      name: `Order đang chờ(${countOrderByStatus(1)})`,
+      name: `Order đang chờ(${orders.length})`,
       onClick: handleShowAvailableOrders,
     },
     // {
@@ -346,12 +314,6 @@ export default function BasicMap() {
 
   const actions = showShipperOrOrder ? actions_1 : actions_2;
 
-  const filterOrders = orders.filter((order) => {
-    if (showAvailableOrder) {
-      return order.status === 1;
-    } else return true;
-  });
-
   const filteredShippers = shippers.filter((shipper) => {
     if (showDeliveringShippers) {
       return shipper.status === 2;
@@ -374,14 +336,13 @@ export default function BasicMap() {
   //   }
   //   return color;
   // }
-  console.log("dmmm", open);
   const handleMarkerClick = (shipper) => {
     handleShipperClickMap(shipper);
   };
 
   return (
     <>
-      <MapContainer ref={mapRef} center={[10.8416, 106.8411]} zoom={166}>
+      <MapContainer ref={mapRef} center={[10.8416, 106.8411]} zoom={16}>
         <button className="toggle-btn" onClick={toggleMapType}>
           {showSatellite ? "Default Map" : "Satellite Map"}
         </button>
@@ -443,7 +404,7 @@ export default function BasicMap() {
             maskClosable={false}
             maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
           >
-            {filterOrders.map((order) => (
+            {orders.map((order) => (
               <React.Fragment key={order.id}>
                 <ListItem
                   alignItems="flex-start"
@@ -451,10 +412,10 @@ export default function BasicMap() {
                   onClick={() => handleOrderClick(order)}
                 >
                   <ListItemAvatar>
-                    <Avatar alt={order.id} src={order.img} />
+                    <Avatar alt={order.orderId} src={orderIcon} />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={order.id}
+                    primary={order.orderId}
                     secondary={
                       <>
                         <Typography
@@ -462,18 +423,13 @@ export default function BasicMap() {
                           variant="body2"
                           sx={{ display: "inline" }}
                           color="text.primary"
-                        >
-                          Trạng thái:{" "}
-                          <StatusBadge
-                            status={(order.status = 1 ? "đang chờ đơn" : "")}
-                          />
-                        </Typography>
+                        ></Typography>
                       </>
                     }
                   />
                 </ListItem>
 
-                <Divider variant="inset" component="li" />
+                <Divider variant="inset" />
               </React.Fragment>
             ))}
           </Drawer>
@@ -562,23 +518,17 @@ export default function BasicMap() {
                 </Popup>
               </Marker>
             ))
-          : filterOrders.map((order) => (
+          : orders.map((order) => (
               <Marker
-                key={order.id}
+                key={order.orderId}
                 position={[order.latitude, order.longitude]}
                 icon={customIcon}
               >
                 <Popup>
                   {/* <img src={order.img} alt={order.id} /> */}
-                  <h2>{order.id}</h2>
+                  <h2>{order.orderId}</h2>
                   {/* <p>Kinh độ: {order.latitude}</p>
                     <p>Vĩ độ: {order.longitude}</p> */}
-                  <p>
-                    Trạng thái:{" "}
-                    <StatusBadge
-                      status={(order.status = 1 ? "đang chờ đơn" : "")}
-                    />
-                  </p>
                 </Popup>
               </Marker>
             ))}

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { BASE_URL, ORDER, BASE_URL_CORAL_TEAM_VERSION } from "./constants";
+import { get } from "lodash";
 
 //https://deliveryvhgp-webapi.azurewebsites.net/api/v1/order-management/orders?pageIndex=1&pageSize=200&DateFilter=Nov%2023%202022&SearchByPayment=0&SearchByStatus=1&SearchByMode=1
 export const getListOrder = (
@@ -150,5 +151,12 @@ export const updateOrder = (orderId, updatedOrder) => {
       Accept: "application/json",
       "Content-Type": "application/json",
     }
+  );
+};
+
+//https://api.vhgp.net/api/v1/routes/get-delivery-point
+export const getOrderWaiting = async () => {
+  return await axios.get(
+    "https://api.vhgp.net/api/v1/routes/get-delivery-point"
   );
 };

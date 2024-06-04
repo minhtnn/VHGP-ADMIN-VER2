@@ -88,3 +88,8 @@
 .leaflet-routing-container {
   display: none !important;
 }
+
+.ant-drawer-title{
+  display: flex;
+  justify-content: center;
+}

@@ -4,22 +4,18 @@ import { FiberManualRecord } from "@mui/icons-material";
 
 const StatusBadge = ({ status }) => {
   const getStatusColor = () => {
-    const st = status.toLowerCase();
+    const st = status;
     switch (st) {
-      case "đang giao hàng":
-        return "#4caf50";
-      case "đang chờ đơn":
-        return "#2196f3";
-      case "0ffline":
-        return "#757575";
-      case "đang chờ":
-        return "#2196f3";
-      case "đã hoàn thành":
-        return "#FF6600";
-      case "đã hủy":
-        return "#EE0000";
+      case 0:
+        return "#FFCC33";
+      case 1:
+        return "#00FFFF";
+      case 2:
+        return "#33FF33";
+      case 3:
+        return "#888888";
       default:
-        return "black";
+        return "#888888";
     }
   };
 
@@ -44,10 +40,24 @@ const StatusBadge = ({ status }) => {
     font-size: 14px;
   `;
 
+  const statusContent = (status) => {
+    if (status === 0) {
+      return "Đang chờ đơn";
+    } else if (status === 1) {
+      return "Đang nhận đơn";
+    } else if (status === 2) {
+      return "Đang giao hàng";
+    } else if (status === 3) {
+      return "Offline";
+    } else {
+      return "Offline";
+    }
+  };
+
   return (
     <Container>
       <Dot />
-      <StatusText>{status}</StatusText>
+      <StatusText>{statusContent(status)}</StatusText>
     </Container>
   );
 };

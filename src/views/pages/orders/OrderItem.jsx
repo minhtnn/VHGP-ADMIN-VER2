@@ -52,7 +52,7 @@ export const OrderItem = ({ data, index }) => {
       </td>
 
       {/* CỬA HÀNG  */}
-      <td
+      {/* <td
         className="budget table-text "
         style={{
           whiteSpace: "unset",
@@ -61,7 +61,7 @@ export const OrderItem = ({ data, index }) => {
         }}
       >
         {data.storeName}
-      </td>
+      </td> */}
 
       {/* ĐIỂM GIAO HÀNG */}
       <td
@@ -164,12 +164,12 @@ export const OrderItem = ({ data, index }) => {
       {/* <td className="budget table-text bold" style={{ color: "var(--secondary)", padding: "1.7rem 0rem 1.7rem 1.5rem" }}>
                 {data.shipper}
             </td> */}
-      <td
+      {/* <td
         className="budget table-text"
         style={{ padding: "1.7rem 0rem 1.7rem 1.5rem" }}
       >
         {getModeName(data.modeId)}
-      </td>
+      </td> */}
 
       <td
         className="budget table-text"

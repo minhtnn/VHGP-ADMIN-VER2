@@ -70,6 +70,7 @@ export const Order = () => {
     { label: "Thu hộ chuyển khoản", value: 1 },
     { label: "Đã thanh toán", value: 2 },
   ];
+
   const optionsMode = [
     { label: "Tất cả", value: 0 },
     { label: "Gọi Món", value: 1 },
@@ -298,6 +299,27 @@ export const Order = () => {
                                                 />
                                             </InputGroup>
                                         </FormGroup> */}
+                    <Input
+                      placeholder="Nhập mã cửa hàng"
+                      styles={customStylesStoreCode}
+                      value={storeCode}
+                      onChange={(e) => {
+                        console.log(e.target.value); // Đảm bảo rằng giá trị này không phải undefined
+                        setStoreCode(e.target.value); // Sử dụng e.target.value để lấy giá trị đúng
+                        setFilter({ ...filter, storeCode: e.target.value });
+                        handleGetOrder(
+                          filter.date,
+                          filter.payment,
+                          filter.status,
+                          filter.mode,
+                          e.target.value, // Sử dụng e.target.value
+                          1,
+                          pageSize
+                        );
+                        setPage(1);
+                      }}
+                    />
+
                     <ReactDatetime
                       closeOnSelect={true}
                       inputProps={{
@@ -432,7 +454,7 @@ export const Order = () => {
                         // }
                       }}
                     />
-                    <Select
+                    {/* <Select
                       options={optionsMode}
                       placeholder="Hình thức đặt hàng"
                       styles={customStylesStatus}
@@ -473,27 +495,7 @@ export const Order = () => {
                         //         .catch((error) => console.log(error));
                         // }
                       }}
-                    />
-                    <Input
-                      placeholder="Mã đơn hàng"
-                      styles={customStylesStoreCode}
-                      value={storeCode}
-                      onChange={(e) => {
-                        console.log(e.target.value); // Đảm bảo rằng giá trị này không phải undefined
-                        setStoreCode(e.target.value); // Sử dụng e.target.value để lấy giá trị đúng
-                        setFilter({ ...filter, storeCode: e.target.value });
-                        handleGetOrder(
-                          filter.date,
-                          filter.payment,
-                          filter.status,
-                          filter.mode,
-                          e.target.value, // Sử dụng e.target.value
-                          1,
-                          pageSize
-                        );
-                        setPage(1);
-                      }}
-                    />
+                    /> */}
                   </Form>
                 </CardHeader>
                 {/* <Col className="mt-3 mt-md-0 text-md-right" lg="6" xs="5">
@@ -519,9 +521,9 @@ export const Order = () => {
                     <th className="sort table-title" scope="col">
                       Mã Đơn Hàng
                     </th>
-                    <th className="sort table-title" scope="col">
+                    {/* <th className="sort table-title" scope="col">
                       Cửa hàng
-                    </th>
+                    </th> */}
                     <th className="sort table-title" scope="col">
                       Điểm Giao Hàng
                     </th>
@@ -543,19 +545,19 @@ export const Order = () => {
                     <th className="sort table-title" scope="col">
                       Ngày Tạo
                     </th>
-
                     <th className="sort table-title" scope="col">
                       Thanh Toán
                     </th>
                     <th className="sort table-title" scope="col">
                       Trạng Thái
                     </th>
+                    
                     {/* <th className="sort table-title" scope="col">
                                             Dịch vụ
                                         </th> */}
-                    <th className="sort table-title" scope="col">
+                    {/* <th className="sort table-title" scope="col">
                       Mode
-                    </th>
+                    </th> */}
 
                     <th className="sort table-title" scope="col">
                       {/* Hành động */}

@@ -34,6 +34,8 @@ import {
   getEndPoitLocation,
   getShipperLocation,
 } from "../../../apis/shiperApiService";
+import shipperIcon from "./icon/shipper.png";
+import order from "./icon/address.png";
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
@@ -168,10 +170,8 @@ export default function BasicMap() {
   };
 
   const customIcon = new Icon({
-    iconUrl: showShipperOrOrder
-      ? "https://cdn-icons-png.flaticon.com/128/7541/7541900.png"
-      : "https://www.vhv.rs/dpng/d/71-712666_pre-order-icon-png-transparent-png.png",
-    iconSize: [38, 38],
+    iconUrl: showShipperOrOrder ? shipperIcon : order,
+    iconSize: [45, 45],
   });
 
   const handleChange = () => {
@@ -201,26 +201,12 @@ export default function BasicMap() {
     localStorage.setItem("mapType", newMapType ? "satellite" : "default");
   };
 
-  const [drawLine, setDrawLine] = useState(() => {
-    const storedDrawLine = localStorage.getItem("drawLine");
-    return storedDrawLine === "true"; // Ensure the returned value is a boolean
-  });
-
-  // const [drawLine, setDrawLine] = useState(false);
-
-  const toggleDrawLine = () => {
-    // setDrawLine(!drawLine);
-    const newDrawLine = !drawLine;
-    setDrawLine(newDrawLine);
-    localStorage.setItem("drawLine", newDrawLine ? "true" : "false"); // Store boolean as a string
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getShipperRedis();
         setShippers(response.data);
-        console.log("dmmm", response.data);
+        console.log("Check Shipper", response.data);
         // const newShippers = response.data;
         // const newPaths = { ...shipperPaths };
 
@@ -240,11 +226,13 @@ export default function BasicMap() {
         // const location = {};
         // for (const shipper of newShipperAndOrder) {
         //   if (
-        //     shipper.status.toLowerCase() === "đang giao hàng" &&
+        //     shipper.status.toLowerCase() === "1" &&
         //     shipper.id === "an@gmail.com"
         //   ) {
         //     const odApi = await getEndPoitLocation(shipper);
+        //     console.log("...", odApi);
         //     const spApi = await getShipperLocation(shipper);
+        //     console.log("???", spApi);
         //     if (!location[shipper.id]) {
         //       location[shipper.id] = [];
         //     }
@@ -266,7 +254,7 @@ export default function BasicMap() {
       }
     };
     fetchData();
-    const intervalId = setInterval(fetchData, 3000);
+    const intervalId = setInterval(fetchData, 5000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -356,7 +344,6 @@ export default function BasicMap() {
 
   const handleMarkerClick = (shipper) => {
     handleShipperClickMap(shipper);
-    toggleDrawLine();
   };
 
   return (
@@ -376,7 +363,7 @@ export default function BasicMap() {
           attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url={
             showSatellite
-              ? "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png"
+              ? "http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}"
               : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           }
         />
@@ -394,7 +381,7 @@ export default function BasicMap() {
           ariaLabel="SpeedDial example"
           sx={{ position: "absolute", top: 16, right: 16 }}
           icon={<MenuIcon />}
-          direction="down"
+          direction="left"
         >
           {actions.map((action) => (
             <SpeedDialAction
@@ -421,8 +408,8 @@ export default function BasicMap() {
             }}
             style={{
               position: "absolute",
-              top: "1%",
-              right: "6.5%",
+              top: "85px",
+              right: "15px",
               zIndex: 1000,
             }}
           >
@@ -476,8 +463,8 @@ export default function BasicMap() {
             }}
             style={{
               position: "absolute",
-              top: "1%",
-              right: "6.5%",
+              top: "85px",
+              right: "15px",
               zIndex: 1000,
             }}
           >
@@ -544,10 +531,10 @@ export default function BasicMap() {
                     </p>
                   </Popup> */}
                   <Popup>
-                    <img src={shipper.img} alt={shipper.id} />
+                    {/* <img src={shipper.img} alt={shipper.id} /> */}
                     <h2>{shipper.id}</h2>
-                    <p>Kinh độ: {shipper.latitude}</p>
-                    <p>Vĩ độ: {shipper.longitude}</p>
+                    {/* <p>Kinh độ: {shipper.latitude}</p>
+                    <p>Vĩ độ: {shipper.longitude}</p> */}
                     <p>Biển số xe: {shipper.carindentify}</p>
                     <p>
                       Trạng thái: <StatusBadge status={shipper.status} />
@@ -562,10 +549,10 @@ export default function BasicMap() {
                   icon={customIcon}
                 >
                   <Popup>
-                    <img src={order.img} alt={order.id} />
+                    {/* <img src={order.img} alt={order.id} /> */}
                     <h2>{order.id}</h2>
-                    <p>Kinh độ: {order.latitude}</p>
-                    <p>Vĩ độ: {order.longitude}</p>
+                    {/* <p>Kinh độ: {order.latitude}</p>
+                    <p>Vĩ độ: {order.longitude}</p> */}
                     <p>
                       Trạng thái:{" "}
                       <StatusBadge
@@ -577,9 +564,7 @@ export default function BasicMap() {
               ))}
         </MarkerClusterGroup>
 
-        {/* {drawLine &&
-        selectedShipperIdMap &&
-        shipperAndOrderPaths[selectedShipperIdMap] ? (
+        {/* {selectedShipperIdMap && shipperAndOrderPaths[selectedShipperIdMap] ? (
           <RoutingLine
             locations={[
               {

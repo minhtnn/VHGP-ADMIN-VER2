@@ -374,12 +374,12 @@ export default function BasicMap() {
           ariaLabel="SpeedDial example"
           sx={{
             position: "absolute",
-            top: showShipperOrOrder ? "78%" : "90%", // Sử dụng phần trăm cho top
-            right: "96%", // Sử dụng phần trăm cho right để nó thích ứng tốt trên mọi thiết bị
+            top: "4.5%", // Sử dụng phần trăm cho top
+            right: showShipperOrOrder ? "65%" : "75%", // Sử dụng phần trăm cho right để nó thích ứng tốt trên mọi thiết bị
             transform: "translateY(-50%)", // Dùng transform để căn giữa đối tượng so với vị trí top của nó
           }}
           icon={<HomeIcon />}
-          direction="up"
+          direction="right"
         >
           {actions.map((action) => (
             <SpeedDialAction

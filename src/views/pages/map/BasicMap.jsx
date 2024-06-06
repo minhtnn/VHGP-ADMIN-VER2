@@ -225,28 +225,28 @@ export default function BasicMap() {
         // localStorage.setItem("shipperPaths", JSON.stringify(newPaths));
         // console.log("Final updated paths:", shipperPaths); // Logging the final path structure
 
-        const newShipperAndOrder = response.data;
-        const location = {};
-        for (const shipper of newShipperAndOrder) {
-          if (shipper.id === "an@gmail.com") {
-            const odApi = await getEndPoitLocation(shipper);
-            const spApi = await getShipperLocation(shipper);
-            if (!location[shipper.id]) {
-              location[shipper.id] = [];
-            }
-            location[shipper.id].push(
-              {
-                longitude: spApi.data.longitude,
-                latitude: spApi.data.latitude,
-              },
-              {
-                longitude: odApi.data.longitude,
-                latitude: odApi.data.latitude,
-              }
-            );
-            setShipperAndOrderPaths(location);
-          }
-        }
+        // const newShipperAndOrder = response.data;
+        // const location = {};
+        // for (const shipper of newShipperAndOrder) {
+        //   if (shipper.id === "an@gmail.com") {
+        //     const odApi = await getEndPoitLocation(shipper);
+        //     const spApi = await getShipperLocation(shipper);
+        //     if (!location[shipper.id]) {
+        //       location[shipper.id] = [];
+        //     }
+        //     location[shipper.id].push(
+        //       {
+        //         longitude: spApi.data.longitude,
+        //         latitude: spApi.data.latitude,
+        //       },
+        //       {
+        //         longitude: odApi.data.longitude,
+        //         latitude: odApi.data.latitude,
+        //       }
+        //     );
+        //     setShipperAndOrderPaths(location);
+        //   }
+        // }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -260,9 +260,9 @@ export default function BasicMap() {
     return shippers.filter((shipper) => shipper.status === status).length;
   };
 
-  const countOrderByStatus = (status) => {
-    return orders.filter((order) => order.status === status).length;
-  };
+  // const countOrderByStatus = (status) => {
+  //   return orders.filter((order) => order.status === status).length;
+  // };
 
   const actions_1 = [
     {
@@ -372,12 +372,13 @@ export default function BasicMap() {
         ) : null} */}
         <SpeedDial
           ariaLabel="SpeedDial example"
-          sx={
-            showShipperOrOrder
-              ? { position: "absolute", top: 310, right: 1380 }
-              : { position: "absolute", top: 478, right: 1380 }
-          }
-          icon={<MenuIcon />}
+          sx={{
+            position: "absolute",
+            top: showShipperOrOrder ? "78%" : "90%", // Sử dụng phần trăm cho top
+            right: "96%", // Sử dụng phần trăm cho right để nó thích ứng tốt trên mọi thiết bị
+            transform: "translateY(-50%)", // Dùng transform để căn giữa đối tượng so với vị trí top của nó
+          }}
+          icon={<HomeIcon />}
           direction="up"
         >
           {actions.map((action) => (
@@ -508,7 +509,8 @@ export default function BasicMap() {
                   </Popup> */}
                 <Popup>
                   {/* <img src={shipper.img} alt={shipper.id} /> */}
-                  <h2>{shipper.id}</h2>
+                  <h2>{shipper.name}</h2>
+                  <p>Id Shipper :{shipper.id}</p>
                   {/* <p>Kinh độ: {shipper.latitude}</p>
                     <p>Vĩ độ: {shipper.longitude}</p> */}
                   <p>Biển số xe: {shipper.carindentify}</p>
@@ -532,7 +534,7 @@ export default function BasicMap() {
                 </Popup>
               </Marker>
             ))}
-        {selectedShipperIdMap && shipperAndOrderPaths[selectedShipperIdMap] ? (
+        {/* {selectedShipperIdMap && shipperAndOrderPaths[selectedShipperIdMap] ? (
           <RoutingLine
             locations={[
               {
@@ -549,7 +551,7 @@ export default function BasicMap() {
               },
             ]}
           />
-        ) : null}
+        ) : null} */}
       </MapContainer>
     </>
   );

@@ -51,38 +51,43 @@
 }
 /* CSS cho Popup */
 .leaflet-popup-content-wrapper {
-  background-color: #f9fafb; 
+  background-color: #f9fafb;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
-  padding: 16px; 
-  width: 250px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  width: auto; /* Đặt width là auto để cho phép nó mở rộng theo nội dung */
+  min-width: 250px; /* Giữ nguyên chiều rộng tối thiểu */
+  max-width: 100%; /* Đặt chiều rộng tối đa là 100% để tránh vượt quá màn hình */
 }
-
 
 .leaflet-popup-content {
-  text-align: left; 
+  text-align: left;
+  white-space: nowrap; /* Đảm bảo nội dung không xuống dòng */
+  overflow: hidden; /* Ẩn nội dung vượt quá chiều rộng của popup */
+  text-overflow: ellipsis; /* Thêm dấu ba chấm nếu nội dung bị cắt */
 }
 
-.leaflet-popup-content img { 
-  width: 100px; 
-  border-radius: 50%; 
-  margin-bottom: 10px; 
+.leaflet-popup-content img {
+  width: 100px;
+  border-radius: 50%;
+  margin-bottom: 10px;
 }
 
 .leaflet-popup-content h2 {
   display: flex;
   justify-content: center;
-  margin-bottom: 5px; 
-  font-size: 18px; 
+  margin-bottom: 5px;
+  font-size: 18px;
   font-weight: bold;
-  color: #333; 
+  color: #333;
 }
 
 .leaflet-popup-content p {
-  font-size: 14px; 
-  margin-bottom: 10px; 
+  font-size: 14px;
+  margin-bottom: 10px;
   color: #555;
 }
+
 
 /*Ẩn bảng chỉ đường*/
 .leaflet-routing-container {

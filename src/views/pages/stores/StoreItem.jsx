@@ -15,14 +15,15 @@ export const StoreItem = ({ data, index }) => {
     <>
       <tr>
         <td className="budget table-text bold">{index + 1}</td>
-        <td className="budget table-text bold">{data.brandStoreName}</td>
+        {/* <td className="budget table-text bold">{data.brandStoreName}</td> */}
+        <td className="budget table-text bold">{data.storeCode}</td>
         <td className="budget table-text bold" style={{ whiteSpace: "unset" }}>
           {data.name}
         </td>
         <td className="budget table-text ">{data.phone}</td>
-        <td className="budget table-text ">
+        {/* <td className="budget table-text ">
           {data.creditAccount || "Không có"}
-        </td>
+        </td> */}
         <td className="budget table-text bold">{data.buildingStore}</td>
         <td className="budget table-text ">{data.storeCateName}</td>
         {/* <td>

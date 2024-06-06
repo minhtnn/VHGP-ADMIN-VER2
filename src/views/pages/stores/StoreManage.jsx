@@ -365,17 +365,20 @@ export const StoreManage = () => {
                       STT
                     </th>
                     <th className="sort table-title" scope="col">
-                      Tên Thương Hiệu
+                      Mã cửa hàng
                     </th>
+                    {/* <th className="sort table-title" scope="col">
+                      Tên Thương Hiệu
+                    </th> */}
                     <th className="sort table-title" scope="col">
                       Tên Cửa Hàng
                     </th>
                     <th className="sort table-title" scope="col">
                       Số Điện Thoại
                     </th>
-                    <th className="sort table-title" scope="col">
+                    {/* <th className="sort table-title" scope="col">
                       Số Tài Khoản
-                    </th>
+                    </th> */}
                     <th className="sort table-title" scope="col">
                       Building
                     </th>

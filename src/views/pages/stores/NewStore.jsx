@@ -409,7 +409,7 @@ export const NewStore = () => {
                       </div>
                     </div>
 
-                    <div className="col-md-3">
+                    <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
                           Mã cửa hàng {" "}
@@ -431,7 +431,7 @@ export const NewStore = () => {
                       </div>
                     </div>      
 
-                    <div className="col-md-3">
+                    <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
                           Số điện thoại{" "}
@@ -560,7 +560,7 @@ export const NewStore = () => {
                         )}
                       </div>
                     </div>
-                    <div className="col-md-6">
+                    {/* <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
                           Số tài khoản{" "}
@@ -575,7 +575,7 @@ export const NewStore = () => {
                           }}
                         />
                       </div>
-                    </div>
+                    </div> */}
                     <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">

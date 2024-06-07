@@ -48,6 +48,7 @@ import { AppContext } from "../../../context/AppProvider";
 import { DriverItem } from "./DriverItem";
 import { getListStoreByKey } from "../../../apis/storeApiService";
 // core components
+
 function DriverManage() {
   const { openModal, openDeleteModal, storeCategoryModal, setOpenDeleteModal } =
     useContext(AppContext);
@@ -67,13 +68,17 @@ function DriverManage() {
     },
   };
 
+  function sortDriversByStatus(drivers) {
+    return drivers.sort((a, b) => (a.status === "Active" ? -1 : 1));
+  }
+
   function fetchDropdownOptions(key) {
     setIsLoading(true);
     setDriverList([]);
     if (key !== "") {
       getListShipperbyKey(key, 1, 100)
         .then((res) => {
-          const drivers = res.data;
+          const drivers = sortDriversByStatus(res.data);
           setTimeout(() => {
             setDriverList(drivers);
             setIsLoading(false);
@@ -84,22 +89,26 @@ function DriverManage() {
       hanldeGetListDriver();
     }
   }
+
   const debounceDropDown = useCallback(
     debounce((nextValue) => fetchDropdownOptions(nextValue), 1000),
     []
   );
+
   function handleInputOnchange(e) {
     const { value } = e.target;
     setKeyword(value);
     debounceDropDown(value);
   }
+
   const hanldeGetListDriver = () => {
     setIsLoading(true);
     getListShipper(1, 100)
       .then((res) => {
         if (res.data) {
+          const sortedDrivers = sortDriversByStatus(res.data);
           setTimeout(() => {
-            setDriverList(res.data);
+            setDriverList(sortedDrivers);
             setIsLoading(false);
           }, 300);
         }
@@ -110,6 +119,7 @@ function DriverManage() {
         notify("Đã xảy ra lỗi gì đó!!", "Error");
       });
   };
+
   useEffect(() => {
     hanldeGetListDriver();
   }, []);
@@ -117,6 +127,7 @@ function DriverManage() {
   const handleReload = () => {
     hanldeGetListDriver();
   };
+
   const customStylesPayment = {
     control: (provided, state) => ({
       ...provided,
@@ -128,13 +139,14 @@ function DriverManage() {
       boxShadow: state.isFocused ? null : null,
       borderRadius: "0.5rem",
     }),
-
     input: (provided, state) => ({
       ...provided,
       margin: "5px",
     }),
   };
+
   const hanldeDeleteStoreCate = () => {};
+
   return (
     <>
       <ShipperModal openModal={openModal} handleReload={handleReload} />
@@ -188,7 +200,6 @@ function DriverManage() {
                       onClick={() => {
                         setOpenDeleteModal(false);
                       }}
-                      // className="btn-neutral"
                       color="default"
                       size="lg"
                       style={{
@@ -296,28 +307,6 @@ function DriverManage() {
                         />
                       </InputGroup>
                     </div>
-                    {/* <Dropdown isOpen={dropdownOpen} toggle={toggle}>
-                                            <DropdownToggle
-                                                className="dropdown"
-                                                caret
-                                                size="lg"
-                                                style={{
-                                                    height: 42,
-                                                    borderRadius: "0.25rem",
-                                                    boxShadow: "none",
-                                                    border: "1px solid rgb(200,200,200)",
-                                                    transition: "none",
-                                                    padding: "10px 20px",
-                                                    // background: "#fff",
-                                                }}
-                                            >
-                                                Danh Mục
-                                            </DropdownToggle>
-                                            <DropdownMenu>
-                                                <DropdownItem>Header</DropdownItem>
-                                                <DropdownItem>Action</DropdownItem>
-                                            </DropdownMenu>
-                                        </Dropdown> */}
                   </div>
                 </CardHeader>
 
@@ -419,41 +408,6 @@ function DriverManage() {
                   <Lottie options={defaultOptions} height={400} width={400} />
                 </CardBody>
               )}
-              {/* {!isLoading && driverList.length > 0 && (
-                                <CardFooter className="py-4">
-                                    <nav aria-label="...">
-                                        <Pagination className="pagination justify-content-end mb-0" listClassName="justify-content-end mb-0">
-                                            <PaginationItem className="disabled">
-                                                <PaginationLink href="#pablo" onClick={(e) => e.preventDefault()} tabIndex="-1">
-                                                    <i className="fas fa-angle-left" />
-                                                    <span className="sr-only">Previous</span>
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                            <PaginationItem className="active">
-                                                <PaginationLink href="#pablo" onClick={(e) => e.preventDefault()}>
-                                                    1
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                            <PaginationItem>
-                                                <PaginationLink href="#pablo" onClick={(e) => e.preventDefault()}>
-                                                    2 <span className="sr-only">(current)</span>
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                            <PaginationItem>
-                                                <PaginationLink href="#pablo" onClick={(e) => e.preventDefault()}>
-                                                    3
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                            <PaginationItem>
-                                                <PaginationLink href="#pablo" onClick={(e) => e.preventDefault()}>
-                                                    <i className="fas fa-angle-right" />
-                                                    <span className="sr-only">Next</span>
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                        </Pagination>
-                                    </nav>
-                                </CardFooter>
-                            )} */}
             </Card>
           </div>
         </Row>

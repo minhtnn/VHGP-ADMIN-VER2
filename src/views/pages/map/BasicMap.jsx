@@ -375,7 +375,7 @@ export default function BasicMap() {
           sx={{
             position: "absolute",
             top: "4.5%", // Sử dụng phần trăm cho top
-            right: showShipperOrOrder ? "65%" : "75%", // Sử dụng phần trăm cho right để nó thích ứng tốt trên mọi thiết bị
+            right: showShipperOrOrder ? "60%" : "70%", // Sử dụng phần trăm cho right để nó thích ứng tốt trên mọi thiết bị
             transform: "translateY(-50%)", // Dùng transform để căn giữa đối tượng so với vị trí top của nó
           }}
           icon={<HomeIcon />}

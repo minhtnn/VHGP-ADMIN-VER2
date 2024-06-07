@@ -72,12 +72,12 @@ export const OrderItem = ({ data, index }) => {
       </td>
 
       {/* KHÁCH HÀNG */}
-      <td
+      {/* <td
         className="budget table-text "
         style={{ padding: "1.7rem 0rem 1.7rem 1.5rem" }}
       >
         {data.customerName}
-      </td>
+      </td> */}
 
       {/* SỐ ĐIỆN THOẠI */}
       <td

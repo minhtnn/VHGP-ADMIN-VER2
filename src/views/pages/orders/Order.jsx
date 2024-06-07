@@ -527,9 +527,9 @@ export const Order = () => {
                     <th className="sort table-title" scope="col">
                       Điểm Giao Hàng
                     </th>
-                    <th className="sort table-title" scope="col">
+                    {/* <th className="sort table-title" scope="col">
                       Khách Hàng
-                    </th>
+                    </th> */}
                     <th className="sort table-title" scope="col">
                       SDT
                     </th>

@@ -33,6 +33,9 @@ import RoutingLine from "./LeafRoutingMachine";
 import AccessAlarmIcon from "@mui/icons-material/AccessAlarm";
 import HomeIcon from "@mui/icons-material/Home";
 import AddTaskIcon from "@mui/icons-material/AddTask";
+import HearingDisabledIcon from "@mui/icons-material/HearingDisabled";
+import ElectricMopedIcon from "@mui/icons-material/ElectricMoped";
+import AvTimerIcon from "@mui/icons-material/AvTimer";
 import { Button, Drawer, Radio, Space } from "antd";
 import { DrawerProps, RadioChangeEvent } from "antd";
 
@@ -40,6 +43,8 @@ import {
   getShipperRedis,
   getEndPoitLocation,
   getShipperLocation,
+  getAllShipper,
+  getTimeShipperOffline,
 } from "../../../apis/shiperApiService";
 import { getOrderWaiting } from "../../../apis/orderApiService";
 import shipperIcon from "./icon/shipper.png";
@@ -47,6 +52,7 @@ import orderIcon from "./icon/address.png";
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
+  const [allShippers, setAllShippers] = useState([]);
   const [open, setOpen] = useState(false);
   const [orders, setOrders] = useState([]);
   const [showDeliveringShippers, setShowDeliveringShippers] = useState(false);
@@ -66,7 +72,7 @@ export default function BasicMap() {
     return showShipperOrOrder === "shipper";
   });
   const [selectedShipperId, setSelectedShipperId] = useState(null);
-
+  const [timeShipperOffline, setTimeShipperOffline] = useState({});
   const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
 
   const mapRef = useRef(null);
@@ -210,6 +216,18 @@ export default function BasicMap() {
         const orderResponse = await getOrderWaiting();
         setOrders(orderResponse.data);
         console.log("check order", orderResponse.data);
+        const responseAllShipper = await getAllShipper();
+        setAllShippers(responseAllShipper.data);
+        console.log("Check all shippers", responseAllShipper.data);
+        const newTimeOffline = { ...timeShipperOffline };
+        for (const shipper of responseAllShipper.data) {
+          const responseTimeOffline = await getTimeShipperOffline(shipper);
+          if (!newTimeOffline[shipper.id]) {
+            newTimeOffline[shipper.id] = [];
+          }
+          newTimeOffline[shipper.id].push(responseTimeOffline.data);
+        }
+        setTimeShipperOffline(newTimeOffline);
         // const newShippers = response.data;
         // const newPaths = { ...shipperPaths };
 
@@ -260,13 +278,17 @@ export default function BasicMap() {
     return shippers.filter((shipper) => shipper.status === status).length;
   };
 
+  const countShippersOffline = (status) => {
+    return allShippers.filter((shipper) => shipper.status === status).length;
+  };
+
   // const countOrderByStatus = (status) => {
   //   return orders.filter((order) => order.status === status).length;
   // };
 
   const actions_1 = [
     {
-      icon: <OnlinePrediction />,
+      icon: <ElectricMopedIcon />,
       name: `Shipper đang giao hàng (${countShippersByStatus(2)})`,
       onClick: handleShowDeliveringShippers,
     },
@@ -276,20 +298,20 @@ export default function BasicMap() {
       onClick: handleShowAvailableShippers,
     },
     {
-      icon: <WifiTetheringOffIcon />,
-      name: `Shipper đang offline (${countShippersByStatus(3)})`,
-      onClick: handleShowOfflineShippers,
-    },
-    {
       icon: <AddTaskIcon />,
       name: `Shipper đang nhận đơn (${countShippersByStatus(1)})`,
       onClick: handleShowOrderTakingShipper,
+    },
+    {
+      icon: <HearingDisabledIcon />,
+      name: `Shipper đang offline (${countShippersOffline(3)})`,
+      onClick: handleShowOfflineShippers,
     },
   ];
 
   const actions_2 = [
     {
-      icon: <OnlinePrediction />,
+      icon: <AvTimerIcon />,
       name: `Order đang chờ(${orders.length})`,
       onClick: handleShowAvailableOrders,
     },
@@ -319,8 +341,6 @@ export default function BasicMap() {
       return shipper.status === 2;
     } else if (showAvailableShippers) {
       return shipper.status === 0;
-    } else if (showOfflineShippers) {
-      return shipper.status === 3;
     } else if (showOrderTakingShippers) {
       return shipper.status === 1;
     } else {
@@ -328,6 +348,11 @@ export default function BasicMap() {
     }
   });
 
+  const filteredShippersOffline = allShippers.filter((shipper) => {
+    if (showOfflineShippers) {
+      return shipper.status === 3;
+    }
+  });
   // function getRandomColor() {
   //   var letters = "0123456789ABCDEF";
   //   var color = "#";
@@ -338,6 +363,14 @@ export default function BasicMap() {
   // }
   const handleMarkerClick = (shipper) => {
     handleShipperClickMap(shipper);
+  };
+
+  const showTimeShipperOffline = (shipper) => {
+    // Directly access the time using the shipper's ID.
+    const times = timeShipperOffline[shipper.id];
+    let timeParts = times[0].split(".");
+    console.log("dmmm", timeParts);
+    return timeParts;
   };
 
   return (
@@ -375,7 +408,7 @@ export default function BasicMap() {
           sx={{
             position: "absolute",
             top: "4.5%", // Sử dụng phần trăm cho top
-            right: showShipperOrOrder ? "65%" : "75%", // Sử dụng phần trăm cho right để nó thích ứng tốt trên mọi thiết bị
+            right: showShipperOrOrder ? "60%" : "70%", // Sử dụng phần trăm cho right để nó thích ứng tốt trên mọi thiết bị
             transform: "translateY(-50%)", // Dùng transform để căn giữa đối tượng so với vị trí top của nó
           }}
           icon={<HomeIcon />}
@@ -436,7 +469,6 @@ export default function BasicMap() {
           </Drawer>
         )}
         {(showDeliveringShippers ||
-          showOfflineShippers ||
           showAvailableShippers ||
           showOrderTakingShippers) && (
           <Drawer
@@ -461,7 +493,7 @@ export default function BasicMap() {
                     <Avatar alt={shipper.id} src={shipperIcon} />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={shipper.id}
+                    primary={shipper.name}
                     secondary={
                       <>
                         <Typography
@@ -470,9 +502,64 @@ export default function BasicMap() {
                           sx={{ display: "inline" }}
                           color="text.primary"
                         >
+                          Id shipper : {shipper.id}
+                          <br />
                           Biển số xe: {shipper.carindentify}
                           <br />
                           Trạng thái: <StatusBadge status={shipper.status} />
+                        </Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+
+                <Divider variant="inset" />
+              </React.Fragment>
+            ))}
+          </Drawer>
+        )}
+        {showOfflineShippers && (
+          <Drawer
+            title="Shipper"
+            placement="right"
+            width={500}
+            closable={true}
+            onClose={onClose}
+            open={open}
+            mask={false}
+            maskClosable={false}
+            maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
+          >
+            {filteredShippersOffline.map((shipper) => (
+              <React.Fragment key={shipper.id}>
+                <ListItem
+                  alignItems="flex-start"
+                  button
+                  onClick={() => handleShipperClick(shipper)}
+                >
+                  <ListItemAvatar>
+                    <Avatar alt={shipper.id} src={shipperIcon} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={shipper.name}
+                    secondary={
+                      <>
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          sx={{ display: "inline" }}
+                          color="text.primary"
+                        >
+                          Id shipper : {shipper.id}
+                          <br />
+                          Biển số xe: {shipper.carindentify}
+                          <br />
+                          Trạng thái: <StatusBadge status={shipper.status} />
+                          <br />
+                          Offline Time: {
+                            showTimeShipperOffline(shipper)[0]
+                          }{" "}
+                          ngày {showTimeShipperOffline(shipper)[1]} giây
                         </Typography>
                       </>
                     }

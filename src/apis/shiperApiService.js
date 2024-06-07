@@ -57,3 +57,15 @@ export const getEndPoitLocation = async (shipper) => {
     `https://api.vhgp.net/api/v1/routes/get-delivery-point/${shipper.id}`
   );
 };
+
+//https://vhgp-api.vhgp.net/api/Shipper
+export const getAllShipper = async () => {
+  return await axios.get(`https://vhgp-api.vhgp.net/api/Shipper`);
+};
+
+//https://vhgp-api.vhgp.net/api/Shipper/GetTimeShipperOff/{shipperId}
+export const getTimeShipperOffline = async (shipper) => {
+  return await axios.get(
+    `https://vhgp-api.vhgp.net/api/Shipper/GetTimeShipperOff/${shipper.id}`
+  );
+};

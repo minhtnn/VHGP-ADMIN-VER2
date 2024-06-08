@@ -213,9 +213,6 @@ export default function BasicMap() {
         const response = await getShipperRedis();
         setShippers(response.data);
         console.log("Check Shipper", response.data);
-        const orderResponse = await getOrderWaiting();
-        setOrders(orderResponse.data);
-        console.log("check order", orderResponse.data);
         const responseAllShipper = await getAllShipper();
         setAllShippers(responseAllShipper.data);
         console.log("Check all shippers", responseAllShipper.data);
@@ -228,6 +225,10 @@ export default function BasicMap() {
           newTimeOffline[shipper.id].push(responseTimeOffline.data);
         }
         setTimeShipperOffline(newTimeOffline);
+        const orderResponse = await getOrderWaiting();
+        setOrders(orderResponse.data);
+        console.log("check order", orderResponse.data);
+
         // const newShippers = response.data;
         // const newPaths = { ...shipperPaths };
 
@@ -270,7 +271,7 @@ export default function BasicMap() {
       }
     };
     fetchData();
-    const intervalId = setInterval(fetchData, 5000);
+    const intervalId = setInterval(fetchData, 3000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -369,7 +370,6 @@ export default function BasicMap() {
     // Directly access the time using the shipper's ID.
     const times = timeShipperOffline[shipper.id];
     let timeParts = times[0].split(".");
-    console.log("dmmm", timeParts);
     return timeParts;
   };
 

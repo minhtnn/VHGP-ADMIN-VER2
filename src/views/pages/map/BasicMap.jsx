@@ -46,12 +46,16 @@ import {
   getAllShipper,
   getTimeShipperOffline,
 } from "../../../apis/shiperApiService";
-import { getOrderWaiting } from "../../../apis/orderApiService";
+import {
+  getOrderWaiting,
+  getOrderByShipperId,
+} from "../../../apis/orderApiService";
 import shipperIcon from "./icon/shipper.png";
 import orderIcon from "./icon/address.png";
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
+  const [orderOfShipper, setOrderOfShipper] = useState({});
   const [allShippers, setAllShippers] = useState([]);
   const [open, setOpen] = useState(false);
   const [orders, setOrders] = useState([]);
@@ -74,6 +78,7 @@ export default function BasicMap() {
   const [selectedShipperId, setSelectedShipperId] = useState(null);
   const [timeShipperOffline, setTimeShipperOffline] = useState({});
   const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
+  const [offlineTime, setOfflineTime] = useState(true);
 
   const mapRef = useRef(null);
 
@@ -213,9 +218,24 @@ export default function BasicMap() {
         const response = await getShipperRedis();
         setShippers(response.data);
         console.log("Check Shipper", response.data);
+
         const responseAllShipper = await getAllShipper();
         setAllShippers(responseAllShipper.data);
         console.log("Check all shippers", responseAllShipper.data);
+
+        const NewOrderOfShipper = { ...orderOfShipper };
+        for (const shipper of response.data) {
+          if (shipper.status === 2 || shipper.status === 1) {
+            const responseOrderOfShipper = await getOrderByShipperId(shipper);
+            if (!NewOrderOfShipper[shipper.id]) {
+              NewOrderOfShipper[shipper.id] = [];
+            }
+            NewOrderOfShipper[shipper.id].push(responseOrderOfShipper.data);
+          }
+          setOrderOfShipper(NewOrderOfShipper);
+          console.log("check order of shipper", NewOrderOfShipper);
+        }
+
         const newTimeOffline = { ...timeShipperOffline };
         for (const shipper of responseAllShipper.data) {
           const responseTimeOffline = await getTimeShipperOffline(shipper);
@@ -225,6 +245,8 @@ export default function BasicMap() {
           newTimeOffline[shipper.id].push(responseTimeOffline.data);
         }
         setTimeShipperOffline(newTimeOffline);
+        console.log("check time ofline of shipper", newTimeOffline);
+
         const orderResponse = await getOrderWaiting();
         setOrders(orderResponse.data);
         console.log("check order", orderResponse.data);
@@ -370,6 +392,9 @@ export default function BasicMap() {
     // Directly access the time using the shipper's ID.
     const times = timeShipperOffline[shipper.id];
     let timeParts = times[0].split(".");
+    if (timeParts.length === 2) {
+      return ["0", timeParts[0], timeParts[1]];
+    }
     return timeParts;
   };
 
@@ -490,10 +515,19 @@ export default function BasicMap() {
                   onClick={() => handleShipperClick(shipper)}
                 >
                   <ListItemAvatar>
-                    <Avatar alt={shipper.id} src={shipperIcon} />
+                    <Avatar alt={shipper.id} src={shipper.img} />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={shipper.name}
+                    style={{ fontWeight: "bold" }}
+                    primary={
+                      <Typography
+                        component="span"
+                        variant="body1"
+                        sx={{ fontWeight: "bold" }}
+                      >
+                        {shipper.name}
+                      </Typography>
+                    }
                     secondary={
                       <>
                         <Typography
@@ -502,9 +536,15 @@ export default function BasicMap() {
                           sx={{ display: "inline" }}
                           color="text.primary"
                         >
-                          Id shipper : {shipper.id}
+                          <span>Id shipper: </span>
+                          <span style={{ fontWeight: "bold" }}>
+                            {shipper.id}
+                          </span>
                           <br />
-                          Biển số xe: {shipper.carindentify}
+                          <span>Biển số xe: </span>
+                          <span style={{ fontWeight: "bold" }}>
+                            {shipper.carindentify}
+                          </span>
                           <br />
                           Trạng thái: <StatusBadge status={shipper.status} />
                         </Typography>
@@ -538,10 +578,18 @@ export default function BasicMap() {
                   onClick={() => handleShipperClick(shipper)}
                 >
                   <ListItemAvatar>
-                    <Avatar alt={shipper.id} src={shipperIcon} />
+                    <Avatar alt={shipper.id} src={shipper.img} />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={shipper.name}
+                    primary={
+                      <Typography
+                        component="span"
+                        variant="body1"
+                        sx={{ fontWeight: "bold" }}
+                      >
+                        {shipper.name}
+                      </Typography>
+                    }
                     secondary={
                       <>
                         <Typography
@@ -550,16 +598,19 @@ export default function BasicMap() {
                           sx={{ display: "inline" }}
                           color="text.primary"
                         >
-                          Id shipper : {shipper.id}
+                          <span>Id shipper: </span>
+                          <span style={{ fontWeight: "bold" }}>
+                            {shipper.id}
+                          </span>
                           <br />
-                          Biển số xe: {shipper.carindentify}
+                          <span>Biển số xe: </span>
+                          <span style={{ fontWeight: "bold" }}>
+                            {shipper.carindentify}
+                          </span>
                           <br />
-                          Trạng thái: <StatusBadge status={shipper.status} />
-                          <br />
-                          Offline Time: {
+                          Hoạt động {
                             showTimeShipperOffline(shipper)[0]
-                          }{" "}
-                          ngày {showTimeShipperOffline(shipper)[1]} giây
+                          } ngày {showTimeShipperOffline(shipper)[1]} giây trước
                         </Typography>
                       </>
                     }
@@ -595,14 +646,22 @@ export default function BasicMap() {
                     </p>
                   </Popup> */}
                 <Popup>
-                  {/* <img src={shipper.img} alt={shipper.id} /> */}
+                  <img src={shipper.img} alt={shipper.id} />
                   <h2>{shipper.name}</h2>
-                  <p>Id Shipper :{shipper.id}</p>
+                  <p>
+                    Id Shipper :{" "}
+                    <span style={{ fontWeight: "bold" }}>{shipper.id}</span>
+                  </p>
                   {/* <p>Kinh độ: {shipper.latitude}</p>
                     <p>Vĩ độ: {shipper.longitude}</p> */}
-                  <p>Biển số xe: {shipper.carindentify}</p>
                   <p>
-                    Trạng thái: <StatusBadge status={shipper.status} />
+                    Biển số xe :{" "}
+                    <span style={{ fontWeight: "bold" }}>
+                      {shipper.carindentify}
+                    </span>
+                  </p>
+                  <p>
+                    Trạng thái : <StatusBadge status={shipper.status} />
                   </p>
                 </Popup>
               </Marker>

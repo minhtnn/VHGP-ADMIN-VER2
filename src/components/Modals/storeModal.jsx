@@ -323,7 +323,7 @@ export const StoreModal = ({ handleReload }) => {
                             className="align-items-center"
                           >
                             <CardHeader className="border-0">
-                              <h2 className="mb-0">Hình ảnh</h2>
+                              <h2 className="mb-0">Hình ảnh <span style={{ color: "red" }}> * </span></h2> 
                             </CardHeader>
                           </div>
                           <div className="col-md-12">

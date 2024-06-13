@@ -29,8 +29,7 @@ const CreateOrder = () => {
 
   const [productInformation, setProductInformation] = useState("");
   const [productInformationState, setProductInformationState] = useState("");
-  const [productInformationMessage, setProductInformationMessage] =
-    useState("");
+  const [productInformationMessage, setProductInformationMessage] = useState("");
 
   const [timeReceived, setTimeReceived] = useState("");
   const [timeReceivedState, setTimeReceivedState] = useState("");
@@ -75,7 +74,6 @@ const CreateOrder = () => {
     const value = e.target.value;
     setCommandBoxValue(value);
     parseCommand(value);
-    // setTimeout(() => validateCustomStylesForm(), 0);
   };
 
   useEffect(() => {
@@ -83,26 +81,20 @@ const CreateOrder = () => {
       validateCustomStylesForm();
     }
   }, [
-    // productInformation,
     store,
     total,
     timeReceived,
-    // timeDelivery,
     paymentName,
     shipCost,
     phone,
     name,
     building,
     commandBoxValue,
-  ]); // List all state variables that should trigger validation
+  ]);
 
   const checkPhoneValid = () => {
-    if (phone.match(/^[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}$/im)) {
-      return true;
-    }
-    return false;
+    return phone.match(/^[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}$/im);
   };
-
 
   const parseCommand = (command) => {
     const parts = command.split("_");
@@ -166,8 +158,6 @@ const CreateOrder = () => {
           : "invalid"
       );
 
-      // setProductInformation(productInformation);
-
       setNoteOfCustomer(customerNote);
       setNoteOfOrder(orderNote);
       setCommandBoxValueMessage("Command hợp lệ");
@@ -218,19 +208,17 @@ const CreateOrder = () => {
   // Get Time and Date current
   useEffect(() => {
     const now = new Date();
-    // const formattedDate = now.toISOString().split("T")[0];
     const formattedTime = now.toTimeString().split(" ")[0].slice(0, 5);
 
     setTimeReceived(formattedTime);
     setTimeDelivery(formattedTime);
   }, []);
+
   // VALIDATION FORM
   const validateCustomStylesForm = () => {
     let valid = true;
 
-    // order note
     if (noteOfOrder === "") {
-      
       valid = false;
       setNoteOfOrderState("invalid");
       setNoteOfOrderMessage("Ghi chú đơn hàng không được để trống");
@@ -238,33 +226,6 @@ const CreateOrder = () => {
       setNoteOfOrderState("valid");
       setNoteOfOrderMessage("");
     }
-    
-
-    // Product information
-    // switch (true) {
-    //   case productInformation.trim() === "":
-    //     valid = false;
-    //     setProductInformationState("invalid");
-    //     setProductInformationMessage("Thông tin sản phẩm không được để trống");
-    //     break;
-    //   case productInformation.length > 100:
-    //     valid = false;
-    //     setProductInformationState("invalid");
-    //     setProductInformationMessage(
-    //       "Thông tin sản phẩm không được vượt quá 100 kí tự"
-    //     );
-    //     break;
-    //   case !/^[A-Za-z0-9\sÀ-ỹ]{1,100}$/.test(productInformation):
-    //     valid = false;
-    //     setProductInformationState("invalid");
-    //     setProductInformationMessage(
-    //       "Thông tin sản phẩm chỉ chứa kí tự chữ, số và khoảng trắng"
-    //     );
-    //     break;
-    //   default:
-    //     setProductInformationState("valid");
-    //     setProductInformationMessage("");
-    // }
 
     if (timeReceived === "") {
       valid = false;
@@ -283,7 +244,7 @@ const CreateOrder = () => {
       setTimeDeliveryState("valid");
       setTimeDeliveryMessage("");
     }
-    // STORE
+
     if (store === "") {
       valid = false;
       setStoreState("invalid");
@@ -291,7 +252,6 @@ const CreateOrder = () => {
       setStoreState("valid");
     }
 
-    // BUILDING
     if (building === "") {
       valid = false;
       setBuildingState("invalid");
@@ -299,7 +259,6 @@ const CreateOrder = () => {
       setBuildingState("valid");
     }
 
-    // NAME
     switch (true) {
       case name.trim() === "":
         valid = false;
@@ -314,12 +273,13 @@ const CreateOrder = () => {
       case !/^[A-Za-z\sÀ-ỹ]{1,50}$/.test(name):
         valid = false;
         setNameState("invalid");
-        setNameMessage("Tên khách hàn chỉ chứa kí tự chữ và khoảng trắng");
+        setNameMessage("Tên khách hàng chỉ chứa kí tự chữ và khoảng trắng");
         break;
       default:
         setNameState("valid");
         setNameMessage("");
     }
+
     if (paymentName === "") {
       valid = false;
       setPaymentNameState("invalid");
@@ -327,7 +287,6 @@ const CreateOrder = () => {
       setPaymentNameState("valid");
     }
 
-    // TOTAL
     if (total === "") {
       valid = false;
       setTotalState("invalid");
@@ -340,12 +299,11 @@ const CreateOrder = () => {
       setTotal(0);
       valid = false;
       setTotalState("invalid");
-      setTotalMessage("Giá trị đơn hàng không thể là 1 giá trị âm");
+      setTotalMessage("Giá trị đơn hàng không thể là một giá trị âm");
     } else {
       setTotalState("valid");
     }
 
-    // SHIP COST
     if (shipCost === "") {
       valid = false;
       setShipCostState("invalid");
@@ -358,8 +316,8 @@ const CreateOrder = () => {
       setShipCostState("valid");
     }
 
-    // PHONE NUMBER
     if (phone === "") {
+      valid = false;
       setPhoneState("invalid");
       setPhoneMessage("Số điện thoại không được để trống");
     } else if (!checkPhoneValid()) {
@@ -372,53 +330,97 @@ const CreateOrder = () => {
     return valid;
   };
 
-  const handleSubmit = () => {
-    console.log(validateCustomStylesForm)
-    if (validateCustomStylesForm()) {
-      setIsLoadingCircle(true);
-      let order = {
-        // productInformation: productInformation,
-        timeReceived: timeReceived,
-        timeDelivery: timeDelivery,
-        paymentType: paymentName.value,
-        total: parseFloat(total),
-        shipCost: shipCost,
-        orderNote: noteOfOrder,
-        customerNote: noteOfCustomer,
-        phoneNumber: phone,
-        fullName: name,
-        buildingId: building.value,
-        deliveryTimeId: "6",
-      };
 
-      createOrder(store.value, order)
-        .then((res) => {
-          console.log("Create order (res) :", res);
-          
-          if (res.data) {
-            setIsLoadingCircle(false);
-            notify("Thêm mới thành công", "Success");
-            // setProductInformation("");
-            setStore("");
-            setBuilding("");
-            setName("");
-            setPhone("");
-            setTotal("");
-            setNoteOfOrder("");
-            setNoteOfCustomer("");
-            setPaymentName("");
-            setShipCost("");
-            setTimeReceived("");
-            setTimeDelivery("");
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-          setIsLoadingCircle(false);
-          notify("Đã xảy ra lỗi gì đó!!", "Error");
-        });
+  // Hàm kiểm tra user tồn tại
+  const checkUserExists = async (phoneNumber) => {
+    try {
+      const response = await axios.get(
+        `https://api-pointify.reso.vn/api/memberships?apiKey=34519997-3d4b-4b31-857f-d6612082c11b&phoneNumber=${phoneNumber}`
+      );
+      // Kiểm tra xem có bất kỳ mục nào trong mảng items có phoneNumber khớp không
+      return response.data.items.some(item => item.phoneNumber === phoneNumber);
+    } catch (error) {
+      console.error("Error checking user existence:", error);
+      return false;
     }
   };
+  
+  const handleSubmit = async () => {
+    if (validateCustomStylesForm()) {
+      setIsLoadingCircle(true);
+  
+      // Lấy thông tin khách hàng từ các trường nhập
+      const customerInfo = {
+        fullName: name,
+        phoneNumber: phone,
+      };
+  
+      try {
+     
+        const userExists = await checkUserExists(customerInfo.phoneNumber);
+  
+        if (!userExists) {
+         
+          console.log("User does not exist, creating user.");
+  
+          await axios.post(
+            "https://65e177e7a8583365b3166e9d.mockapi.io/data_user",
+            customerInfo
+          );
+          console.log("User created:", customerInfo);
+        } else {
+          console.log("User exists:", customerInfo);
+        }
+  
+       
+        let order = {
+          timeReceived: timeReceived,
+          timeDelivery: timeDelivery,
+          paymentType: paymentName.value,
+          total: parseFloat(total),
+          shipCost: shipCost,
+          orderNote: noteOfOrder,
+          customerNote: noteOfCustomer,
+          phoneNumber: phone,
+          fullName: name,
+          buildingId: building.value,
+          deliveryTimeId: "6",
+        };
+  
+        const res = await createOrder(store.value, order);
+        console.log("Create order (res):", res);
+  
+        if (res.data) {
+          // Đặt lại trạng thái của các trường nhập
+          setIsLoadingCircle(false);
+          notify("Thêm mới thành công", "Success");
+          resetFields();
+        }
+      } catch (error) {
+        console.error("Error creating order or customer:", error);
+        setIsLoadingCircle(false);
+        notify("Đã xảy ra lỗi khi tạo đơn hàng hoặc khách hàng", "Error");
+      }
+    }
+  };
+  
+  // Hàm đặt lại giá trị của các trường nhập
+  const resetFields = () => {
+    setStore("");
+    setBuilding("");
+    setName("");
+    setPhone("");
+    setTotal("");
+    setNoteOfOrder("");
+    setNoteOfCustomer("");
+    setPaymentName("");
+    setShipCost("");
+    setTimeReceived("");
+    setTimeDelivery("");
+  };
+  
+  
+  
 
   const getSelectStyles = (isValid, isInvalid) => ({
     control: (provided, state) => ({
@@ -440,6 +442,7 @@ const CreateOrder = () => {
       margin: "5px",
     }),
   });
+
 
   return (
     <>

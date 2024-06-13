@@ -160,3 +160,10 @@ export const getOrderWaiting = async () => {
     "https://api.vhgp.net/api/v1/routes/get-delivery-point"
   );
 };
+
+//https://api.vhgp.net/api/v1/orders/shippers/{shipper.id}
+export const getOrderByShipperId = async (shipper) => {
+  return await axios.get(
+    `https://api.vhgp.net/api/v1/orders/shippers/${shipper.id}`
+  );
+};

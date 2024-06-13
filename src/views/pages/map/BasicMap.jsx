@@ -36,8 +36,10 @@ import AddTaskIcon from "@mui/icons-material/AddTask";
 import HearingDisabledIcon from "@mui/icons-material/HearingDisabled";
 import ElectricMopedIcon from "@mui/icons-material/ElectricMoped";
 import AvTimerIcon from "@mui/icons-material/AvTimer";
+import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import { Button, Drawer, Radio, Space } from "antd";
 import { DrawerProps, RadioChangeEvent } from "antd";
+import { useHistory } from "react-router-dom";
 
 import {
   getShipperRedis,
@@ -46,15 +48,21 @@ import {
   getAllShipper,
   getTimeShipperOffline,
 } from "../../../apis/shiperApiService";
-import { getOrderWaiting } from "../../../apis/orderApiService";
+import {
+  getOrderWaiting,
+  getOrderByShipperId,
+  getOrderDetail,
+} from "../../../apis/orderApiService";
 import shipperIcon from "./icon/shipper.png";
 import orderIcon from "./icon/address.png";
 
 export default function BasicMap() {
   const [shippers, setShippers] = useState([]);
+  const [orderOfShipper, setOrderOfShipper] = useState({});
   const [allShippers, setAllShippers] = useState([]);
   const [open, setOpen] = useState(false);
   const [orders, setOrders] = useState([]);
+  const [orderDetail, setOrderDetail] = useState({});
   const [showDeliveringShippers, setShowDeliveringShippers] = useState(false);
   const [showOfflineShippers, setShowOfflineShippers] = useState(false);
   const [showAvailableShippers, setShowAvailableShippers] = useState(false);
@@ -74,6 +82,9 @@ export default function BasicMap() {
   const [selectedShipperId, setSelectedShipperId] = useState(null);
   const [timeShipperOffline, setTimeShipperOffline] = useState({});
   const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
+  const [offlineTime, setOfflineTime] = useState(true);
+
+  const history = useHistory();
 
   const mapRef = useRef(null);
 
@@ -209,16 +220,99 @@ export default function BasicMap() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // try {
+      // const newShippers = response.data;
+      // const newPaths = { ...shipperPaths };
+
+      // newShippers.forEach((shipper) => {
+      //   if (!newPaths[shipper.id]) {
+      //     newPaths[shipper.id] = [];
+      //   }
+      //   newPaths[shipper.id].push([
+      //     parseFloat(shipper.latitude),
+      //     parseFloat(shipper.longitude),
+      //   ]);
+      // });
+      // localStorage.setItem("shipperPaths", JSON.stringify(newPaths));
+      // console.log("Final updated paths:", shipperPaths); // Logging the final path structure
+
+      // const newShipperAndOrder = response.data;
+      // const location = {};
+      // for (const shipper of newShipperAndOrder) {
+      //   if (shipper.id === "an@gmail.com") {
+      //     const odApi = await getEndPoitLocation(shipper);
+      //     const spApi = await getShipperLocation(shipper);
+      //     if (!location[shipper.id]) {
+      //       location[shipper.id] = [];
+      //     }
+      //     location[shipper.id].push(
+      //       {
+      //         longitude: spApi.data.longitude,
+      //         latitude: spApi.data.latitude,
+      //       },
+      //       {
+      //         longitude: odApi.data.longitude,
+      //         latitude: odApi.data.latitude,
+      //       }
+      //     );
+      //     setShipperAndOrderPaths(location);
+      //   }
+      // }
+      // } catch (error) {
+      //   console.error("Error fetching data:", error);
+      // }
       try {
         const response = await getShipperRedis();
         setShippers(response.data);
         console.log("Check Shipper", response.data);
-        const orderResponse = await getOrderWaiting();
-        setOrders(orderResponse.data);
-        console.log("check order", orderResponse.data);
+
+        const NewOrderOfShipper = { ...orderOfShipper };
+        for (const shipper of response.data) {
+          if (shipper.status === 2 || shipper.status === 1) {
+            const responseOrderOfShipper = await getOrderByShipperId(shipper);
+            if (!NewOrderOfShipper[shipper.id]) {
+              NewOrderOfShipper[shipper.id] = [];
+            }
+            NewOrderOfShipper[shipper.id].push(responseOrderOfShipper.data);
+          }
+        }
+        setOrderOfShipper(NewOrderOfShipper);
+        console.log("check order of shipper", NewOrderOfShipper);
+
+        const newOrderDetail = { ...orderDetail };
+        for (const shipper of response.data) {
+          const shipperOrders = NewOrderOfShipper[shipper.id];
+          if (shipperOrders) {
+            for (const s of shipperOrders) {
+              const idOrder = s.result[0].orderId;
+              try {
+                const responseOrderDetail = await getOrderDetail(idOrder);
+                if (!newOrderDetail[idOrder]) {
+                  newOrderDetail[idOrder] = [];
+                }
+                newOrderDetail[idOrder].push(responseOrderDetail.data);
+              } catch (error) {
+                console.error(
+                  `Failed to get details for order ID ${idOrder}:`,
+                  error
+                );
+              }
+            }
+          } else {
+            console.warn(`No orders found for shipper ID ${shipper.id}`);
+          }
+        }
+        setOrderDetail(newOrderDetail);
+        console.log("check order detail", newOrderDetail);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+
+      try {
         const responseAllShipper = await getAllShipper();
         setAllShippers(responseAllShipper.data);
         console.log("Check all shippers", responseAllShipper.data);
+
         const newTimeOffline = { ...timeShipperOffline };
         for (const shipper of responseAllShipper.data) {
           const responseTimeOffline = await getTimeShipperOffline(shipper);
@@ -228,49 +322,40 @@ export default function BasicMap() {
           newTimeOffline[shipper.id].push(responseTimeOffline.data);
         }
         setTimeShipperOffline(newTimeOffline);
-        // const newShippers = response.data;
-        // const newPaths = { ...shipperPaths };
+        console.log("check time offline of shipper", newTimeOffline);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
 
-        // newShippers.forEach((shipper) => {
-        //   if (!newPaths[shipper.id]) {
-        //     newPaths[shipper.id] = [];
-        //   }
-        //   newPaths[shipper.id].push([
-        //     parseFloat(shipper.latitude),
-        //     parseFloat(shipper.longitude),
-        //   ]);
-        // });
-        // localStorage.setItem("shipperPaths", JSON.stringify(newPaths));
-        // console.log("Final updated paths:", shipperPaths); // Logging the final path structure
+      try {
+        const orderResponse = await getOrderWaiting();
+        setOrders(orderResponse.data);
+        console.log("check order", orderResponse.data);
 
-        // const newShipperAndOrder = response.data;
-        // const location = {};
-        // for (const shipper of newShipperAndOrder) {
-        //   if (shipper.id === "an@gmail.com") {
-        //     const odApi = await getEndPoitLocation(shipper);
-        //     const spApi = await getShipperLocation(shipper);
-        //     if (!location[shipper.id]) {
-        //       location[shipper.id] = [];
-        //     }
-        //     location[shipper.id].push(
-        //       {
-        //         longitude: spApi.data.longitude,
-        //         latitude: spApi.data.latitude,
-        //       },
-        //       {
-        //         longitude: odApi.data.longitude,
-        //         latitude: odApi.data.latitude,
-        //       }
-        //     );
-        //     setShipperAndOrderPaths(location);
-        //   }
-        // }
+        const newOrderDetail = { ...orderDetail };
+        for (const Oder of orderResponse.data) {
+          const idOrder = Oder.orderId;
+          try {
+            const responseOrderDetail = await getOrderDetail(idOrder);
+            if (!newOrderDetail[idOrder]) {
+              newOrderDetail[idOrder] = [];
+            }
+            newOrderDetail[idOrder].push(responseOrderDetail.data);
+          } catch (error) {
+            console.error(
+              `Failed to get details for order ID ${idOrder}:`,
+              error
+            );
+          }
+        }
+        setOrderDetail(newOrderDetail);
+        console.log("check order detail", newOrderDetail);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
     fetchData();
-    const intervalId = setInterval(fetchData, 5000);
+    const intervalId = setInterval(fetchData, 3000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -369,7 +454,9 @@ export default function BasicMap() {
     // Directly access the time using the shipper's ID.
     const times = timeShipperOffline[shipper.id];
     let timeParts = times[0].split(".");
-    console.log("dmmm", timeParts);
+    if (timeParts.length === 2) {
+      return ["0", timeParts[0], timeParts[1]];
+    }
     return timeParts;
   };
 
@@ -428,7 +515,7 @@ export default function BasicMap() {
           showDeliveringOrder ||
           showDoneOrder) && (
           <Drawer
-            title="Shipper"
+            title={showShipperOrOrder ? "Shipper" : "Order"}
             placement="right"
             width={500}
             closable={true}
@@ -449,7 +536,15 @@ export default function BasicMap() {
                     <Avatar alt={order.orderId} src={orderIcon} />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={order.orderId}
+                    primary={
+                      Object.keys(orderDetail).length > 0 && (
+                        <>
+                          <div style={{ flexGrow: 1 }}>
+                            {orderDetail[order.orderId][0].storeName}
+                          </div>
+                        </>
+                      )
+                    }
                     secondary={
                       <>
                         <Typography
@@ -457,7 +552,17 @@ export default function BasicMap() {
                           variant="body2"
                           sx={{ display: "inline" }}
                           color="text.primary"
-                        ></Typography>
+                        >
+                          {Object.keys(orderDetail).length > 0 && (
+                            <>
+                              <span>Oder : </span>
+                              <span style={{ fontWeight: "bold" }}>
+                                {orderDetail[order.orderId][0].orderNote}
+                              </span>
+                              <br />
+                            </>
+                          )}
+                        </Typography>
                       </>
                     }
                   />
@@ -468,11 +573,9 @@ export default function BasicMap() {
             ))}
           </Drawer>
         )}
-        {(showDeliveringShippers ||
-          showAvailableShippers ||
-          showOrderTakingShippers) && (
+        {showAvailableShippers && (
           <Drawer
-            title="Shipper"
+            title={showShipperOrOrder ? "Shipper" : "Order"}
             placement="right"
             width={500}
             closable={true}
@@ -490,10 +593,25 @@ export default function BasicMap() {
                   onClick={() => handleShipperClick(shipper)}
                 >
                   <ListItemAvatar>
-                    <Avatar alt={shipper.id} src={shipperIcon} />
+                    <Avatar alt={shipper.id} src={shipper.img} />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={shipper.name}
+                    style={{ fontWeight: "bold" }}
+                    primary={
+                      <Typography
+                        component="span"
+                        variant="body1"
+                        sx={{ fontWeight: "bold" }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          <div style={{ flexGrow: 1 }}>{shipper.name}</div>
+                          <StatusBadge
+                            sx={{ marginLeft: "87px" }}
+                            status={shipper.status}
+                          />
+                        </div>
+                      </Typography>
+                    }
                     secondary={
                       <>
                         <Typography
@@ -502,11 +620,108 @@ export default function BasicMap() {
                           sx={{ display: "inline" }}
                           color="text.primary"
                         >
-                          Id shipper : {shipper.id}
+                          <span>Id shipper: </span>
+                          <span style={{ fontWeight: "bold" }}>
+                            {shipper.id}
+                          </span>
                           <br />
-                          Biển số xe: {shipper.carindentify}
+                          <span>Biển số xe: </span>
+                          <span style={{ fontWeight: "bold" }}>
+                            {shipper.carindentify}
+                          </span>
+                        </Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+
+                <Divider variant="inset" />
+              </React.Fragment>
+            ))}
+          </Drawer>
+        )}
+        {(showDeliveringShippers || showOrderTakingShippers) && (
+          <Drawer
+            title={showShipperOrOrder ? "Shipper" : "Order"}
+            placement="right"
+            width={500}
+            closable={true}
+            onClose={onClose}
+            open={open}
+            mask={false}
+            maskClosable={false}
+            maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
+          >
+            {filteredShippers.map((shipper) => (
+              <React.Fragment key={shipper.id}>
+                <ListItem
+                  alignItems="flex-start"
+                  button
+                  onClick={() => handleShipperClick(shipper)}
+                >
+                  <ListItemAvatar>
+                    <Avatar alt={shipper.id} src={shipper.img} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    style={{ fontWeight: "bold" }}
+                    primary={
+                      <Typography
+                        component="span"
+                        variant="body1"
+                        sx={{ fontWeight: "bold" }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          <div style={{ flexGrow: 1 }}>{shipper.name}</div>
+                          <StatusBadge
+                            sx={{ marginLeft: "87px" }}
+                            status={shipper.status}
+                          />
+                        </div>
+                      </Typography>
+                    }
+                    secondary={
+                      <>
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          sx={{ display: "inline" }}
+                          color="text.primary"
+                        >
+                          <span>Id shipper: </span>
+                          <span style={{ fontWeight: "bold" }}>
+                            {shipper.id}
+                          </span>
                           <br />
-                          Trạng thái: <StatusBadge status={shipper.status} />
+                          <span>
+                            {orderOfShipper[shipper.id].map((s) => (
+                              <>
+                                {/* <span>Id order: </span>
+                                <span style={{ fontWeight: "bold" }}>
+                                  {s.result[0].orderId},
+                                </span> */}
+                                {Object.keys(orderDetail).length > 0 && (
+                                  <>
+                                    <span>Shop : </span>
+                                    <span style={{ fontWeight: "bold" }}>
+                                      {
+                                        orderDetail[s.result[0].orderId][0]
+                                          .storeName
+                                      }
+                                    </span>
+                                    <br />
+                                    <span>Oder : </span>
+                                    <span style={{ fontWeight: "bold" }}>
+                                      {
+                                        orderDetail[s.result[0].orderId][0]
+                                          .orderNote
+                                      }
+                                    </span>
+                                    <br />
+                                  </>
+                                )}
+                              </>
+                            ))}
+                          </span>
                         </Typography>
                       </>
                     }
@@ -520,7 +735,7 @@ export default function BasicMap() {
         )}
         {showOfflineShippers && (
           <Drawer
-            title="Shipper"
+            title={showShipperOrOrder ? "Shipper" : "Order"}
             placement="right"
             width={500}
             closable={true}
@@ -538,10 +753,18 @@ export default function BasicMap() {
                   onClick={() => handleShipperClick(shipper)}
                 >
                   <ListItemAvatar>
-                    <Avatar alt={shipper.id} src={shipperIcon} />
+                    <Avatar alt={shipper.id} src={shipper.img} />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={shipper.name}
+                    primary={
+                      <Typography
+                        component="span"
+                        variant="body1"
+                        sx={{ fontWeight: "bold" }}
+                      >
+                        {shipper.name}
+                      </Typography>
+                    }
                     secondary={
                       <>
                         <Typography
@@ -550,16 +773,19 @@ export default function BasicMap() {
                           sx={{ display: "inline" }}
                           color="text.primary"
                         >
-                          Id shipper : {shipper.id}
+                          <span>Id shipper: </span>
+                          <span style={{ fontWeight: "bold" }}>
+                            {shipper.id}
+                          </span>
                           <br />
-                          Biển số xe: {shipper.carindentify}
+                          <span>Biển số xe: </span>
+                          <span style={{ fontWeight: "bold" }}>
+                            {shipper.carindentify}
+                          </span>
                           <br />
-                          Trạng thái: <StatusBadge status={shipper.status} />
-                          <br />
-                          Offline Time: {
+                          Hoạt động {
                             showTimeShipperOffline(shipper)[0]
-                          }{" "}
-                          ngày {showTimeShipperOffline(shipper)[1]} giây
+                          } ngày {showTimeShipperOffline(shipper)[1]} giây trước
                         </Typography>
                       </>
                     }
@@ -595,15 +821,66 @@ export default function BasicMap() {
                     </p>
                   </Popup> */}
                 <Popup>
-                  {/* <img src={shipper.img} alt={shipper.id} /> */}
-                  <h2>{shipper.name}</h2>
-                  <p>Id Shipper :{shipper.id}</p>
+                  <div className="popup_1">
+                    <img src={shipper.img} alt={shipper.id} />
+                    <div className="popup_2">
+                      <p>
+                        <StatusBadge status={shipper.status} />
+                      </p>
+                      <h2>{shipper.name}</h2>
+                    </div>
+                  </div>
+
                   {/* <p>Kinh độ: {shipper.latitude}</p>
                     <p>Vĩ độ: {shipper.longitude}</p> */}
-                  <p>Biển số xe: {shipper.carindentify}</p>
-                  <p>
-                    Trạng thái: <StatusBadge status={shipper.status} />
-                  </p>
+                  {orderOfShipper[shipper.id] ? (
+                    <p>
+                      {orderOfShipper[shipper.id].map((s) => (
+                        <>
+                          {/* Id order :{" "} */}
+                          {/* <span style={{ fontWeight: "bold" }}>
+                            {s.result[0].orderId},
+                          </span>
+                          <br /> */}
+                          {Object.keys(orderDetail).length > 0 && (
+                            <>
+                              <span>Shop : </span>
+                              <span style={{ fontWeight: "bold" }}>
+                                {orderDetail[s.result[0].orderId][0].storeName}
+                              </span>
+                              <br />
+                              <span>Oder : </span>
+                              <span style={{ fontWeight: "bold" }}>
+                                {orderDetail[s.result[0].orderId][0].orderNote}
+                              </span>
+                              <br />
+                            </>
+                          )}
+                          {/* <Fab
+                            variant="extended"
+                            size="small"
+                            color="primary"
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              margin: "0 auto",
+                              top: "15px",
+                            }}
+                            onClick={() => {
+                              history.push(
+                                `/admin/order/${s.result[0].orderId}`
+                              );
+                            }}
+                          >
+                            Order detail
+                          </Fab>
+                          <br /> */}
+                        </>
+                      ))}
+                    </p>
+                  ) : (
+                    " "
+                  )}
                 </Popup>
               </Marker>
             ))
@@ -614,10 +891,38 @@ export default function BasicMap() {
                 icon={customIcon}
               >
                 <Popup>
-                  {/* <img src={order.img} alt={order.id} /> */}
-                  <h2>{order.orderId}</h2>
-                  {/* <p>Kinh độ: {order.latitude}</p>
+                  <div style={{ textAlign: "center" }}>
+                    {/* <img src={order.img} alt={order.id} /> */}
+                    {Object.keys(orderDetail).length > 0 && (
+                      <>
+                        <h2>{orderDetail[order.orderId][0].storeName}</h2>
+                        <span>Oder : </span>
+                        <span style={{ fontWeight: "bold" }}>
+                          {orderDetail[order.orderId][0].orderNote}
+                        </span>
+                        <br />
+                      </>
+                    )}
+                    {/* <Fab
+                      variant="extended"
+                      size="small"
+                      color="primary"
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        margin: "0 auto",
+                        top: "15px",
+                      }}
+                      onClick={() => {
+                        history.push(`/admin/order/${order.orderId}`);
+                      }}
+                    >
+                      Order detail
+                    </Fab>
+                    <br /> */}
+                    {/* <p>Kinh độ: {order.latitude}</p>
                     <p>Vĩ độ: {order.longitude}</p> */}
+                  </div>
                 </Popup>
               </Marker>
             ))}

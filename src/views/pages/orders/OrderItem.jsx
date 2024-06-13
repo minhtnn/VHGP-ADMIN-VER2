@@ -28,7 +28,7 @@ export const OrderItem = ({ data, index }) => {
   return (
     <tr>
       {/* MÃ ĐƠN */}
-      
+
       <td
         className="budget table-text"
         style={{ padding: "1.7rem 0rem 1.7rem 1.5rem" }}
@@ -117,8 +117,8 @@ export const OrderItem = ({ data, index }) => {
         {getTimeConvert(data.time)}
       </td>
 
-     {/* THANH TOÁN */}
-     <td
+      {/* THANH TOÁN */}
+      <td
         className="budget table-text bold"
         style={{
           padding: "1.7rem 0rem 1.7rem 1.5rem",
@@ -147,7 +147,7 @@ export const OrderItem = ({ data, index }) => {
           {paymentStatus.abbreviation} {/* Hiển thị viết tắt */}
         </span>
       </td>
-      
+
       <td
         className="budget table-text"
         style={{ padding: "1.7rem 0rem 1.7rem 1.5rem" }}

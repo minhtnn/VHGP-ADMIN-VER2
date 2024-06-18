@@ -26,7 +26,6 @@ import { Menus } from './views/pages/menus/Menu.jsx'
 // import { Order } from './views/pages/orders/Order.jsx'
 import StoreCategoryManage from './views/pages/store-category/StoreCategoryManage.jsx'
 import { StoreManage } from './views/pages/stores/StoreManage.jsx'
-import CreateBillOfLading from './views/pages/create-order/CreateBillOfLading.jsx'
 import { Order } from './views/pages/orders/Order.jsx'
 
 const routes = [

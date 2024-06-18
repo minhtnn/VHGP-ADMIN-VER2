@@ -81,10 +81,10 @@ export default function BasicMap() {
   });
   const [selectedShipperId, setSelectedShipperId] = useState(null);
   const [timeShipperOffline, setTimeShipperOffline] = useState({});
-  const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
-  const [offlineTime, setOfflineTime] = useState(true);
+  // const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
+  // const [offlineTime, setOfflineTime] = useState(true);
 
-  const history = useHistory();
+  // const history = useHistory();
 
   const mapRef = useRef(null);
 

@@ -81,10 +81,10 @@ export default function BasicMap() {
   });
   const [selectedShipperId, setSelectedShipperId] = useState(null);
   const [timeShipperOffline, setTimeShipperOffline] = useState({});
-  const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
-  const [offlineTime, setOfflineTime] = useState(true);
+  // const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
+  // const [offlineTime, setOfflineTime] = useState(true);
 
-  const history = useHistory();
+  // const history = useHistory();
 
   const mapRef = useRef(null);
 
@@ -129,12 +129,12 @@ export default function BasicMap() {
     setShowOfflineShippers(false);
   };
 
-  const handleShowDeliveringOrders = () => {
-    setShowDeliveringOrder(!showDeliveringOrder);
-    setShowAvailableOrder(false);
-    setShowDoneOrder(false);
-    setShowCancelOrder(false);
-  };
+  // const handleShowDeliveringOrders = () => {
+  //   setShowDeliveringOrder(!showDeliveringOrder);
+  //   setShowAvailableOrder(false);
+  //   setShowDoneOrder(false);
+  //   setShowCancelOrder(false);
+  // };
 
   const handleShowAvailableOrders = () => {
     setOpen(true);
@@ -144,19 +144,19 @@ export default function BasicMap() {
     setShowCancelOrder(false);
   };
 
-  const handleShowDoneOrders = () => {
-    setShowDoneOrder(!showDoneOrder);
-    setShowDeliveringOrder(false);
-    setShowAvailableOrder(false);
-    setShowCancelOrder(false);
-  };
+  // const handleShowDoneOrders = () => {
+  //   setShowDoneOrder(!showDoneOrder);
+  //   setShowDeliveringOrder(false);
+  //   setShowAvailableOrder(false);
+  //   setShowCancelOrder(false);
+  // };
 
-  const handleShowCancelOrder = () => {
-    setShowCancelOrder(!showCancelOrder);
-    setShowDeliveringOrder(false);
-    setShowAvailableOrder(false);
-    setShowDoneOrder(false);
-  };
+  // const handleShowCancelOrder = () => {
+  //   setShowCancelOrder(!showCancelOrder);
+  //   setShowDeliveringOrder(false);
+  //   setShowAvailableOrder(false);
+  //   setShowDoneOrder(false);
+  // };
 
   const handleShipperClick = (shipper) => {
     if (selectedShipperId === shipper.id) {

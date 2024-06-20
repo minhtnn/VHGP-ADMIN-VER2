@@ -17,6 +17,7 @@ import {
   Spinner,
   Table,
   Input,
+  Button,
 } from "reactstrap";
 import { getListOrder } from "../../../apis/orderApiService";
 import SimpleHeader from "../../../components/Headers/SimpleHeader";
@@ -43,7 +44,8 @@ export const Order = () => {
   const [startOrder, setStartOrder] = useState(0);
   const [endOrder, setEndOrder] = useState(0);
   const [listPage, setListPage] = useState([]);
-
+  const [loading, setLoading] = useState();
+  const [selectedDate, setSelectedDate] = useState("");
   const defaultOptions = {
     loop: true,
     autoplay: true,
@@ -259,6 +261,41 @@ export const Order = () => {
     interviewDateRef.current.focus();
   };
 
+  const exportReport = async () => {
+    setLoading(true);
+    try {
+      if (!selectedDate) {
+        console.log("setSelectedDate:", setSelectedDate);
+        console.log("selectedDate: ", selectedDate);
+        console.error("Date is empty");
+        return;
+      }
+      const formattedDate = moment(selectedDate).format("YYYY-MM-DD");
+      console.log(formattedDate);
+      const response = await fetch(
+        `https://api.vhgp.net/api/v1/order-management/orders/report-by-date?date=${formattedDate}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
+      const result = await response.json();
+
+      const base64String = result.data;
+      const link = document.createElement("a");
+      link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64String}`;
+      link.download = `OrderReport_${formattedDate}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error(`Error exporting report: ${error.message}`);
+      alert(`Error exporting report: ${error.message}`);
+    }
+  };
+
   return (
     <>
       <SimpleHeader name="Danh Sách Đơn Hàng" parentName="Quản Lý" />
@@ -331,6 +368,63 @@ export const Order = () => {
                       timeFormat={false}
                       onChange={(e) => {
                         let date = "";
+                        let formattedDate = "";
+                        moment.locale("en");
+                        // Nếu input không empty
+                        if (e) {
+                          // Ngày hợp lệ
+                          if (e._d) {
+                            date = new Date(e._d + "");
+                            console.log(date);
+                            let dateConvert = moment(date).format("ll");
+                            date =
+                              dateConvert.split(",")[0] +
+                              dateConvert.split(",")[1];
+                            console.log(date);
+                            formattedDate = moment(date).format("YYYY-MM-DD");
+                            setFilter({ ...filter, date: date });
+                          } else {
+                            // Ngày không hợp lệ thì set date là ngày tiếp theo để UI hiển thị không có đơn hàng nào
+                            let dateConvert = moment()
+                              .add(1, "days")
+                              .format("ll");
+                            date =
+                              dateConvert.split(",")[0] +
+                              dateConvert.split(",")[1];
+                            console.log(date);
+                            formattedDate = moment(date).format("YYYY-MM-DD");
+                          }
+                        } else {
+                          // Nếu input empty thì hiển thị toàn bộ đơn hàng
+                          date = "";
+                          formattedDate = "";
+                        }
+                        setSelectedDate(formattedDate);
+                        console.log("setSelectedDate", formattedDate);
+                        handleGetOrder(
+                          date,
+                          filter.payment,
+                          filter.status,
+                          filter.mode,
+                          filter.storeCode,
+                          1,
+                          pageSize
+                        );
+                        setPage(1);
+                      }}
+                    />
+
+                    {/* <ReactDatetime
+                      closeOnSelect={true}
+                      inputProps={{
+                        placeholder: "Lọc theo ngày",
+                      }}
+                      initialValue={new Date()}
+                      className="ReactDatetime"
+                      style={{ border: "none" }}
+                      timeFormat={false}
+                      onChange={(e) => {
+                        let date = "";
                         moment.locale("en");
                         // Nếu input không empty
                         if (e) {
@@ -345,22 +439,25 @@ export const Order = () => {
                             console.log(date);
                             setFilter({ ...filter, date: date });
                           }
+                          
                           // Ngày không hợp lệ thì set date là ngày tiếp theo để UI hiển thị không có đơn hàng nào
                           else {
                             let dateConvert = moment()
-                              .add(1, "days")
-                              .format("ll");
+                            .add(1, "days")
+                            .format("ll");
                             date =
-                              dateConvert.split(",")[0] +
-                              dateConvert.split(",")[1];
+                            dateConvert.split(",")[0] +
+                            dateConvert.split(",")[1];
                             console.log(date);
                           }
+                         
                         }
                         // Nếu input empty thì hiển thị toàn bộ đơn hàng
                         else {
                           date = "";
                         }
-
+                        setSelectedDate(moment(date).format("YYYY-MM-DD"));
+                        console.log("setSelectedDate", setSelectedDate);
                         handleGetOrder(
                           date,
                           filter.payment,
@@ -372,7 +469,7 @@ export const Order = () => {
                         );
                         setPage(1);
                       }}
-                    />
+                    /> */}
 
                     <Select
                       options={options}
@@ -496,6 +593,15 @@ export const Order = () => {
                         // }
                       }}
                     /> */}
+                    <div>
+                      <Button
+                        color="success"
+                        onClick={exportReport}
+                        style={{ whiteSpace: "nowrap" }}
+                      >
+                        {loading ? "Đang Tải..." : "Xuất Báo Cáo"}
+                      </Button>
+                    </div>
                   </Form>
                 </CardHeader>
                 {/* <Col className="mt-3 mt-md-0 text-md-right" lg="6" xs="5">
@@ -551,7 +657,7 @@ export const Order = () => {
                     <th className="sort table-title" scope="col">
                       Trạng Thái
                     </th>
-                    
+
                     {/* <th className="sort table-title" scope="col">
                                             Dịch vụ
                                         </th> */}

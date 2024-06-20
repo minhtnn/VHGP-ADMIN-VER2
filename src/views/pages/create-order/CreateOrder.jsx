@@ -98,12 +98,11 @@ const CreateOrder = () => {
 
   const parseCommand = (command) => {
     const parts = command.split("_");
-    if (parts.length === 8) {
+    if (parts.length === 7) {
       const [
         storeCode,
         orderNote,
-        phone,
-        customerName,
+        phoneNumber,
         buildingName,
         orderTotal,
         paymentName,
@@ -143,30 +142,45 @@ const CreateOrder = () => {
         setPaymentNameState("valid");
       }
 
-      setPhone(phone);
+      setPhone(phoneNumber);
       setPhoneState(checkPhoneValid() ? "valid" : "invalid");
 
       setTotal(orderTotal);
       setTotalState(orderTotal >= 0 ? "valid" : "invalid");
 
-      setName(customerName);
-      setNameState(
-        customerName.trim() !== "" &&
-          customerName.length <= 50 &&
-          /^[A-Za-z\sÀ-ỹ]{1,50}$/.test(customerName)
-          ? "valid"
-          : "invalid"
-      );
-
-      setNoteOfCustomer(customerNote);
       setNoteOfOrder(orderNote);
+      setNoteOfCustomer(customerNote);
       setCommandBoxValueMessage("Command hợp lệ");
       setCommandBoxValueState("valid");
+
+      // Gọi API để kiểm tra thông tin khách hàng dựa trên số điện thoại
+      fetchCustomerInfo(phoneNumber);
     } else {
       setCommandBoxValueMessage(
         "Command không đúng định dạng. Vui lòng nhập lại."
       );
       setCommandBoxValueState("invalid");
+    }
+  };
+
+  const fetchCustomerInfo = async (phoneNumber) => {
+    try {
+      const response = await axios.get(
+        `https://api-pointify.reso.vn/api/memberships?apiKey=34519997-3d4b-4b31-857f-d6612082c11b&phoneNumber=${phoneNumber}`
+      );
+
+      if (response.data.items.length > 0) {
+        // Nếu tìm thấy thông tin khách hàng, tự động điền vào trường tên khách hàng
+        const customerName = response.data.items[0].fullname;
+        setName(customerName);
+        setNameState("valid");
+      } else {
+        // Nếu không tìm thấy thông tin khách hàng, để trống tên khách hàng
+        setName("");
+        setNameState(""); // Có thể để trống state của tên khách hàng để người dùng tự nhập
+      }
+    } catch (error) {
+      console.error("Error fetching customer info:", error);
     }
   };
 
@@ -259,25 +273,30 @@ const CreateOrder = () => {
       setBuildingState("valid");
     }
 
-    switch (true) {
-      case name.trim() === "":
-        valid = false;
-        setNameState("invalid");
-        setNameMessage("Tên khách hàng không được để trống");
-        break;
-      case name.length > 50:
-        valid = false;
-        setNameState("invalid");
-        setNameMessage("Tên khách hàng không được vượt quá 50 kí tự");
-        break;
-      case !/^[A-Za-z\sÀ-ỹ]{1,50}$/.test(name):
-        valid = false;
-        setNameState("invalid");
-        setNameMessage("Tên khách hàng chỉ chứa kí tự chữ và khoảng trắng");
-        break;
-      default:
-        setNameState("valid");
-        setNameMessage("");
+    // switch (true) {
+    //   case name.trim() === "":
+    //     valid = false;
+    //     setNameState("invalid");
+    //     setNameMessage("Tên khách hàng không được để trống");
+    //     break;
+    //   case name.length > 50:
+    //     valid = false;
+    //     setNameState("invalid");
+    //     setNameMessage("Tên khách hàng không được vượt quá 50 kí tự");
+    //     break;
+    //   case !/^[A-Za-z\sÀ-ỹ]{1,50}$/.test(name):
+    //     valid = false;
+    //     setNameState("invalid");
+    //     setNameMessage("Tên khách hàng chỉ chứa kí tự chữ và khoảng trắng");
+    //     break;
+    //   default:
+    //     setNameState("valid");
+    //     setNameMessage("");
+    // }
+    if (name.trim() === "") {
+      setNameMessage("Tên khách hàng không được để trống");
+      setNameState("invalid");
+      valid = false;
     }
 
     if (paymentName === "") {
@@ -457,7 +476,7 @@ const CreateOrder = () => {
                 <span style={{ color: "red" }}> * </span>
               </label>
               <span style={{ color: "grey", fontSize: "13px" }}>
-                Mã cửa hàng_Thông tin sản phẩm_Số điện thoại_Tên khách hàng_Mã toà nhà_Tổng tiền_Loại thanh toán_Ghi chú
+                Mã cửa hàng_Thông tin sản phẩm_Số điện thoại_Mã toà nhà_Tổng tiền_Loại thanh toán_Ghi chú
               </span>
               <Input
                 type="text"

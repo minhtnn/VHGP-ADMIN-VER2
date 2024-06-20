@@ -372,6 +372,8 @@ const CreateOrder = () => {
       const customerInfo = {
         fullName: name,
         phoneNumber: phone,
+        buildingId: building.value,
+        isEnroll:false,
       };
   
       try {
@@ -383,7 +385,7 @@ const CreateOrder = () => {
           console.log("User does not exist, creating user.");
   
           await axios.post(
-            "https://65e177e7a8583365b3166e9d.mockapi.io/data_user",
+            "https://api.vhgp.net/api/v1/customer-management",
             customerInfo
           );
           console.log("User created:", customerInfo);

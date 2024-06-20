@@ -842,20 +842,29 @@ export default function BasicMap() {
                             {s.result[0].orderId},
                           </span>
                           <br /> */}
-                          {Object.keys(orderDetail).length > 0 && (
-                            <>
-                              <span>Shop : </span>
-                              <span style={{ fontWeight: "bold" }}>
-                                {orderDetail[s.result[0].orderId][0].storeName}
-                              </span>
-                              <br />
-                              <span>Oder : </span>
-                              <span style={{ fontWeight: "bold" }}>
-                                {orderDetail[s.result[0].orderId][0].orderNote}
-                              </span>
-                              <br />
-                            </>
-                          )}
+                          {Object.keys(orderDetail).length > 0 &&
+                            s.result[0] &&
+                            orderDetail[s.result[0].orderId] &&
+                            orderDetail[s.result[0].orderId][0] && (
+                              <>
+                                <span>Shop : </span>
+                                <span style={{ fontWeight: "bold" }}>
+                                  {
+                                    orderDetail[s.result[0].orderId][0]
+                                      .storeName
+                                  }
+                                </span>
+                                <br />
+                                <span>Order : </span>
+                                <span style={{ fontWeight: "bold" }}>
+                                  {
+                                    orderDetail[s.result[0].orderId][0]
+                                      .orderNote
+                                  }
+                                </span>
+                                <br />
+                              </>
+                            )}
                           {/* <Fab
                             variant="extended"
                             size="small"
@@ -893,16 +902,20 @@ export default function BasicMap() {
                 <Popup>
                   <div style={{ textAlign: "center" }}>
                     {/* <img src={order.img} alt={order.id} /> */}
-                    {Object.keys(orderDetail).length > 0 && (
-                      <>
-                        <h2>{orderDetail[order.orderId][0].storeName}</h2>
-                        <span>Oder : </span>
-                        <span style={{ fontWeight: "bold" }}>
-                          {orderDetail[order.orderId][0].orderNote}
-                        </span>
-                        <br />
-                      </>
-                    )}
+                    {Object.keys(orderDetail).length > 0 &&
+                      order.orderId &&
+                      orderDetail[order.orderId] &&
+                      orderDetail[order.orderId][0] && (
+                        <>
+                          <h2>{orderDetail[order.orderId][0].storeName}</h2>
+                          <span>Order : </span>
+                          <span style={{ fontWeight: "bold" }}>
+                            {orderDetail[order.orderId][0].orderNote}
+                          </span>
+                          <br />
+                        </>
+                      )}
+
                     {/* <Fab
                       variant="extended"
                       size="small"

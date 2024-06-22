@@ -44,7 +44,9 @@ export const Order = () => {
   const [startOrder, setStartOrder] = useState(0);
   const [endOrder, setEndOrder] = useState(0);
   const [listPage, setListPage] = useState([]);
-  const [loading, setLoading] = useState();
+  const [loading, setLoading] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+
   const [selectedDate, setSelectedDate] = useState("");
   const defaultOptions = {
     loop: true,
@@ -263,11 +265,13 @@ export const Order = () => {
 
   const exportReport = async () => {
     setLoading(true);
+    setDownloaded(false);
     try {
       if (!selectedDate) {
         console.log("setSelectedDate:", setSelectedDate);
         console.log("selectedDate: ", selectedDate);
         console.error("Date is empty");
+        setLoading(false);
         return;
       }
       const formattedDate = moment(selectedDate).format("YYYY-MM-DD");
@@ -290,9 +294,13 @@ export const Order = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      setDownloaded(true);
     } catch (error) {
       console.error(`Error exporting report: ${error.message}`);
       alert(`Error exporting report: ${error.message}`);
+      setDownloaded(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -598,8 +606,13 @@ export const Order = () => {
                         color="success"
                         onClick={exportReport}
                         style={{ whiteSpace: "nowrap" }}
+                        disabled={loading}
                       >
-                        {loading ? "Đang Tải..." : "Xuất Báo Cáo"}
+                        {loading
+                          ? "Đang Tải..."
+                          : downloaded
+                          ? "Đã tải về"
+                          : "Xuất Báo Cáo"}
                       </Button>
                     </div>
                   </Form>

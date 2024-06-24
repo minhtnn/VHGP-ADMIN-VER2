@@ -376,14 +376,9 @@ export default function BasicMap() {
         />
         <SpeedDial
           ariaLabel="SpeedDial example"
-          sx={{
-            position: "absolute",
-            top: "4.5%", // Sử dụng phần trăm cho top
-            right: showShipperOrOrder ? "60%" : "70%", // Sử dụng phần trăm cho right để nó thích ứng tốt trên mọi thiết bị
-            transform: "translateY(-50%)", // Dùng transform để căn giữa đối tượng so với vị trí top của nó
-          }}
+          sx={{ position: "absolute", top: 20, right: 30, zIndex: 1000 }}
           icon={<HomeIcon />}
-          direction="right"
+          direction="down"
         >
           {actions.map((action) => (
             <SpeedDialAction
@@ -408,6 +403,7 @@ export default function BasicMap() {
             mask={false}
             maskClosable={false}
             maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
+            sx={{ zIndex: 1100 }} // Thiết lập z-index cao hơn SpeedDial
           >
             {orders.map((order) => (
               <React.Fragment key={order.id}>
@@ -468,6 +464,7 @@ export default function BasicMap() {
             mask={false}
             maskClosable={false}
             maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
+            sx={{ zIndex: 1100 }} // Thiết lập z-index cao hơn SpeedDial
           >
             {filteredShippers.map((shipper) => (
               <React.Fragment key={shipper.id}>
@@ -535,6 +532,7 @@ export default function BasicMap() {
             mask={false}
             maskClosable={false}
             maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
+            sx={{ zIndex: 1100 }} // Thiết lập z-index cao hơn SpeedDial
           >
             {filteredShippers.map((shipper) => (
               <React.Fragment key={shipper.id}>
@@ -624,6 +622,7 @@ export default function BasicMap() {
             mask={false}
             maskClosable={false}
             maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
+            sx={{ zIndex: 1100 }} // Thiết lập z-index cao hơn SpeedDial
           >
             {filteredShippersOffline.map((shipper) => (
               <React.Fragment key={shipper.id}>

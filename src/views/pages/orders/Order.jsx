@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactDatetime from "react-datetime";
 import { useHistory } from "react-router";
 import Select from "react-select";
+import { notify } from "../../../components/Toast/ToastCustom";
 import {
   Card,
   CardBody,
@@ -264,6 +265,10 @@ export const Order = () => {
   };
 
   const exportReport = async () => {
+    if (!selectedDate) {
+      notify("Vui lòng chọn ngày để xuất báo cáo.", "Error");
+      return;
+    }
     setLoading(true);
     setDownloaded(false);
     try {
@@ -295,6 +300,7 @@ export const Order = () => {
       link.click();
       document.body.removeChild(link);
       setDownloaded(true);
+      notify("Tải về thành công", "Success");
     } catch (error) {
       console.error(`Error exporting report: ${error.message}`);
       alert(`Error exporting report: ${error.message}`);

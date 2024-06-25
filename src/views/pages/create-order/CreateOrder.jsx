@@ -16,87 +16,83 @@ import { notify } from "../../../components/Toast/ToastCustom";
 import { postMenu } from "../../../apis/menuApiService";
 import Select from "react-select";
 import { createOrder } from "../../../apis/orderApiService";
-
 import axios from "axios";
 
 const CreateOrder = () => {
   const [commandBoxValue, setCommandBoxValue] = useState("");
   const [commandBoxValueState, setCommandBoxValueState] = useState("");
   const [commandBoxValueMessage, setCommandBoxValueMessage] = useState("");
-  const [commandBoxStatus, setCommandBoxStatus] = useState("");
+
 
   const { buildingList, storeList } = useContext(AppContext);
 
-  const [productInformation, setProductInformation] = useState("");
-  const [productInformationState, setProductInformationState] = useState("");
-  const [productInformationMessage, setProductInformationMessage] = useState("");
+  const [formData, setFormData] = useState({ 
+    productInformation: "",
+    timeReceived: "",
+    timeDelivery: "",
+    store: "",
+    building: "",
+    name: "",
+    phone: "",
+    total: "",
+    shipCost: "",
+    noteOfOrder: "",
+    noteOfCustomer: "",
+    paymentName: "",
+  });
 
-  const [timeReceived, setTimeReceived] = useState("");
-  const [timeReceivedState, setTimeReceivedState] = useState("");
-  const [timeReceivedMessage, setTimeReceivedMessage] = useState("");
-  const [timeDelivery, setTimeDelivery] = useState("");
-  const [timeDeliveryState, setTimeDeliveryState] = useState("");
-  const [timeDeliveryMessage, setTimeDeliveryMessage] = useState("");
+  const [formState, setFormState] = useState({
+    productInformation: "",
+    timeReceived: "",
+    timeDelivery: "",
+    store: "",
+    building: "",
+    name: "",
+    phone: "",
+    total: "",
+    shipCost: "",
+    noteOfOrder: "",
+    noteOfCustomer: "",
+    paymentName: "",
+  });
 
-  const [store, setStore] = useState("");
-  const [storeState, setStoreState] = useState("");
-  const [storeMessage, setStoreMessage] = useState("");
-  const [building, setBuilding] = useState("");
-  const [buildingState, setBuildingState] = useState("");
-  const [buildingMessage, setBuildingMessage] = useState("");
+  const [formMessages, setFormMessages] = useState({
+    productInformation: "",
+    timeReceived: "",
+    timeDelivery: "",
+    store: "",
+    building: "",
+    name: "",
+    phone: "",
+    total: "",
+    shipCost: "",
+    noteOfOrder: "",
+    noteOfCustomer: "",
+    paymentName: "",
+  });
 
-  const [name, setName] = useState("");
-  const [nameState, setNameState] = useState("");
-  const [nameMessage, setNameMessage] = useState("");
-  const [phone, setPhone] = useState("");
-  const [phoneState, setPhoneState] = useState("");
-  const [phoneMessage, setPhoneMessage] = useState("");
-
-  const [total, setTotal] = useState("");
-  const [totalState, setTotalState] = useState("");
-  const [totalMessage, setTotalMessage] = useState("");
-  const [shipCost, setShipCost] = useState("");
-  const [shipCostState, setShipCostState] = useState("");
-  const [shipCostMessage, setShipCostMessage] = useState("");
-
-  const [noteOfOrder, setNoteOfOrder] = useState("");
-  const [noteOfOrderState, setNoteOfOrderState] = useState("");
-  const [noteOfOrderMessage, setNoteOfOrderMessage] = useState("");
-  const [noteOfCustomer, setNoteOfCustomer] = useState("");
-  const [noteOfCustomerState, setNoteOfCustomerState] = useState("");
-  const [noteOfCustomerMessage, setNoteOfCustomerMessage] = useState("");
-
-  const [paymentName, setPaymentName] = useState("");
-  const [paymentNameState, setPaymentNameState] = useState("");
   const [isLoadingCircle, setIsLoadingCircle] = useState(false);
 
   const handleCommandChange = (e) => {
     const value = e.target.value;
+    console.log("Command value changed:", value);
     setCommandBoxValue(value);
     parseCommand(value);
   };
 
   useEffect(() => {
     if (commandBoxValue !== "") {
-      validateCustomStylesForm();
+      console.log("Validating form after command box value change.");
+      validateForm();
     }
-  }, [
-    store,
-    total,
-    timeReceived,
-    paymentName,
-    shipCost,
-    phone,
-    name,
-    building,
-    commandBoxValue,
-  ]);
+  }, [formData, commandBoxValue]);
 
-  const checkPhoneValid = () => {
+  const checkPhoneValid = (phone) => {
     return phone.match(/^[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}$/im);
   };
 
   const parseCommand = (command) => {
+     console.log("Parsing command:", command);
     const parts = command.split("_");
     if (parts.length === 7) {
       const [
@@ -118,84 +114,61 @@ const CreateOrder = () => {
           opt.label.toLowerCase() === paymentName.toLowerCase() ||
           opt.shorthand.toLowerCase() === paymentName.toLowerCase()
       );
+      console.log("Parsed command data:", {
+        storeOption,
+        orderNote,
+        phoneNumber,
+        buildingOption,
+        orderTotal,
+        paymentOption,
+        customerNote,
+      });
 
-      if (!storeOption) {
-        setStoreState("invalid");
-        setStoreMessage("Cửa hàng không tồn tại");
-      } else {
-        setStore(storeOption);
-        setStoreState("valid");
-      }
+      setFormData((prev) => ({
+        ...prev,
+        store: storeOption || "",
+        noteOfOrder: orderNote,
+        phone: phoneNumber,
+        building: buildingOption || "",
+        total: orderTotal,
+        paymentName: paymentOption || "",
+        noteOfCustomer: customerNote,
+      }));
 
-      if (!buildingOption) {
-        setBuildingState("invalid");
-        setBuildingMessage("Địa điểm giao không tồn tại");
-      } else {
-        setBuilding(buildingOption);
-        setBuildingState("valid");
-      }
+      setFormState((prev) => ({
+        ...prev,
+        store: storeOption ? "valid" : "invalid",
+        building: buildingOption ? "valid" : "invalid",
+        paymentName: paymentOption ? "valid" : "invalid",
+        phone: checkPhoneValid(phoneNumber) ? "valid" : "invalid",
+        total: orderTotal >= 0 ? "valid" : "invalid",
+      }));
 
-      if (!paymentOption) {
-        setPaymentNameState("invalid");
-      } else {
-        setPaymentName(paymentOption);
-        setPaymentNameState("valid");
-      }
+      setFormMessages((prev) => ({
+        ...prev,
+        store: storeOption ? "" : "Cửa hàng không tồn tại",
+        building: buildingOption ? "" : "Địa điểm giao không tồn tại",
+      }));
 
-      setPhone(phoneNumber);
-      setPhoneState(checkPhoneValid() ? "valid" : "invalid");
-
-      setTotal(orderTotal);
-      setTotalState(orderTotal >= 0 ? "valid" : "invalid");
-
-      setNoteOfOrder(orderNote);
-      setNoteOfCustomer(customerNote);
-      setCommandBoxValueMessage("Command hợp lệ");
       setCommandBoxValueState("valid");
+      setCommandBoxValueMessage("Command hợp lệ");
 
-      // Gọi API để kiểm tra thông tin khách hàng dựa trên số điện thoại
       fetchCustomerInfo(phoneNumber);
     } else {
-      setCommandBoxValueMessage(
-        "Command không đúng định dạng. Vui lòng nhập lại."
-      );
       setCommandBoxValueState("invalid");
+      setCommandBoxValueMessage("Command không đúng định dạng. Vui lòng nhập lại.");
     }
   };
 
-  const fetchCustomerInfo = async (phoneNumber) => {
-    try {
-      const response = await axios.get(
-        `https://api-pointify.reso.vn/api/memberships?apiKey=34519997-3d4b-4b31-857f-d6612082c11b&phoneNumber=${phoneNumber}`
-      );
+  const optionsStore = storeList.map((item) => ({
+    label: item.name,
+    value: item.storeCode,
+  }));
 
-      if (response.data.items.length > 0) {
-        // Nếu tìm thấy thông tin khách hàng, tự động điền vào trường tên khách hàng
-        const customerName = response.data.items[0].fullname;
-        setName(customerName);
-        setNameState("valid");
-      } else {
-        // Nếu không tìm thấy thông tin khách hàng, để trống tên khách hàng
-        setName("");
-        setNameState(""); // Có thể để trống state của tên khách hàng để người dùng tự nhập
-      }
-    } catch (error) {
-      console.error("Error fetching customer info:", error);
-    }
-  };
-
-  const optionsStore = storeList.map((item) => {
-    return {
-      label: item.name,
-      value: item.storeCode,
-    };
-  });
-  const optionsBuilding = buildingList.map((item) => {
-    return {
-      label: item.name,
-      value: item.id,
-    };
-  });
+  const optionsBuilding = buildingList.map((item) => ({
+    label: item.name,
+    value: item.id,
+  }));
 
   const getPaymentName = (item) => {
     switch (item) {
@@ -219,200 +192,206 @@ const CreateOrder = () => {
     };
   });
 
-  // Get Time and Date current
   useEffect(() => {
     const now = new Date();
     const formattedTime = now.toTimeString().split(" ")[0].slice(0, 5);
 
-    setTimeReceived(formattedTime);
-    setTimeDelivery(formattedTime);
+    setFormData((prev) => ({
+      ...prev,
+      timeReceived: formattedTime,
+      timeDelivery: formattedTime,
+    }));
   }, []);
 
-  // VALIDATION FORM
-  const validateCustomStylesForm = () => {
+  const validateForm = () => {
     let valid = true;
+    const newState = {};
+    const newMessages = {};
 
-    if (noteOfOrder === "") {
+    if (formData.noteOfOrder === "") {
       valid = false;
-      setNoteOfOrderState("invalid");
-      setNoteOfOrderMessage("Ghi chú đơn hàng không được để trống");
+      newState.noteOfOrder = "invalid";
+      newMessages.noteOfOrder = "Ghi chú đơn hàng không được để trống";
     } else {
-      setNoteOfOrderState("valid");
-      setNoteOfOrderMessage("");
+      newState.noteOfOrder = "valid";
+      newMessages.noteOfOrder = "";
     }
 
-    if (timeReceived === "") {
+    if (formData.timeReceived === "") {
       valid = false;
-      setTimeReceivedState("invalid");
-      setTimeReceivedMessage("Thời gian nhận đơn không được để trống");
+      newState.timeReceived = "invalid";
+      newMessages.timeReceived = "Thời gian nhận đơn không được để trống";
     } else {
-      setTimeReceivedState("valid");
-      setTimeReceivedMessage("");
+      newState.timeReceived = "valid";
+      newMessages.timeReceived = "";
     }
 
-    if (timeDelivery === "") {
+    if (formData.timeDelivery === "") {
       valid = false;
-      setTimeDeliveryState("invalid");
-      setTimeDeliveryMessage("Thời gian giao hàng không được để trống");
+      newState.timeDelivery = "invalid";
+      newMessages.timeDelivery = "Thời gian giao hàng không được để trống";
     } else {
-      setTimeDeliveryState("valid");
-      setTimeDeliveryMessage("");
+      newState.timeDelivery = "valid";
+      newMessages.timeDelivery = "";
     }
 
-    if (store === "") {
+    if (formData.store === "") {
       valid = false;
-      setStoreState("invalid");
+      newState.store = "invalid";
     } else {
-      setStoreState("valid");
+      newState.store = "valid";
     }
 
-    if (building === "") {
+    if (formData.building === "") {
       valid = false;
-      setBuildingState("invalid");
+      newState.building = "invalid";
     } else {
-      setBuildingState("valid");
+      newState.building = "valid";
     }
 
-    // switch (true) {
-    //   case name.trim() === "":
-    //     valid = false;
-    //     setNameState("invalid");
-    //     setNameMessage("Tên khách hàng không được để trống");
-    //     break;
-    //   case name.length > 50:
-    //     valid = false;
-    //     setNameState("invalid");
-    //     setNameMessage("Tên khách hàng không được vượt quá 50 kí tự");
-    //     break;
-    //   case !/^[A-Za-z\sÀ-ỹ]{1,50}$/.test(name):
-    //     valid = false;
-    //     setNameState("invalid");
-    //     setNameMessage("Tên khách hàng chỉ chứa kí tự chữ và khoảng trắng");
-    //     break;
-    //   default:
-    //     setNameState("valid");
-    //     setNameMessage("");
-    // }
-    if (name.trim() === "") {
-      setNameMessage("Tên khách hàng không được để trống");
-      setNameState("invalid");
+    if (formData.name.trim() === "") {
       valid = false;
-    }
-
-    if (paymentName === "") {
-      valid = false;
-      setPaymentNameState("invalid");
+      newState.name = "invalid";
+      newMessages.name = "Tên khách hàng không được để trống";
     } else {
-      setPaymentNameState("valid");
+      newState.name = "valid";
+      newMessages.name = "";
     }
 
-    if (total === "") {
+    if (formData.paymentName === "") {
       valid = false;
-      setTotalState("invalid");
-      setTotalMessage("Giá trị đơn hàng không được để trống");
-    } else if (!/^\d+(\.\d+)?$/.test(total)) {
-      valid = false;
-      setTotalState("invalid");
-      setTotalMessage("Giá trị đơn hàng không hợp lệ");
-    } else if (total < 0) {
-      setTotal(0);
-      valid = false;
-      setTotalState("invalid");
-      setTotalMessage("Giá trị đơn hàng không thể là một giá trị âm");
+      newState.paymentName = "invalid";
     } else {
-      setTotalState("valid");
+      newState.paymentName = "valid";
     }
 
-    if (shipCost === "") {
+    if (formData.total === "") {
       valid = false;
-      setShipCostState("invalid");
-      setShipCostMessage("Phí dịch vụ không được để trống");
-    } else if (!/^\d+(\.\d+)?$/.test(shipCost)) {
+      newState.total = "invalid";
+      newMessages.total = "Giá trị đơn hàng không được để trống";
+    } else if (!/^\d+(\.\d+)?$/.test(formData.total)) {
       valid = false;
-      setShipCostState("invalid");
-      setShipCostMessage("Phí dịch vụ không hợp lệ");
+      newState.total = "invalid";
+      newMessages.total = "Giá trị đơn hàng không hợp lệ";
+    } else if (formData.total < 0) {
+      setFormData((prev) => ({ ...prev, total: 0 }));
+      valid = false;
+      newState.total = "invalid";
+      newMessages.total = "Giá trị đơn hàng không thể là một giá trị âm";
     } else {
-      setShipCostState("valid");
+      newState.total = "valid";
+      newMessages.total = "";
     }
 
-    if (phone === "") {
+    if (formData.shipCost === "") {
       valid = false;
-      setPhoneState("invalid");
-      setPhoneMessage("Số điện thoại không được để trống");
-    } else if (!checkPhoneValid()) {
+      newState.shipCost = "invalid";
+      newMessages.shipCost = "Phí dịch vụ không được để trống";
+    } else if (!/^\d+(\.\d+)?$/.test(formData.shipCost)) {
       valid = false;
-      setPhoneState("invalid");
-      setPhoneMessage("Số điện thoại không hợp lệ");
+      newState.shipCost = "invalid";
+      newMessages.shipCost = "Phí dịch vụ không hợp lệ";
     } else {
-      setPhoneState("valid");
+      newState.shipCost = "valid";
+      newMessages.shipCost = "";
     }
+
+    if (formData.phone === "") {
+      valid = false;
+      newState.phone = "invalid";
+      newMessages.phone = "Số điện thoại không được để trống";
+    } else if (!checkPhoneValid(formData.phone)) {
+      valid = false;
+      newState.phone = "invalid";
+      newMessages.phone = "Số điện thoại không hợp lệ";
+    } else {
+      newState.phone = "valid";
+      newMessages.phone = "";
+    }
+
+    setFormState(newState);
+    setFormMessages(newMessages);
+
     return valid;
   };
 
+  const fetchCustomerInfo = async (phoneNumber) => {
+    try {
+      console.log("Fetching customer info for phone number:...", phoneNumber);
+      const response = await axios.get(
+        `https://api-pointify.reso.vn/api/memberships?apiKey=34519997-3d4b-4b31-857f-d6612082c11b&phoneNumber=${phoneNumber}`
+      );
 
-  // Hàm kiểm tra user tồn tại
+      if (response.data.items.length > 0) {
+        const customerName = response.data.items[0].fullname;
+        console.log("Customer found:", customerName);
+        setFormData((prev) => ({ ...prev, name: customerName }));
+        setFormState((prev) => ({ ...prev, name: "valid" }));
+      } else {
+        console.log("Customer not found.");
+        setFormData((prev) => ({ ...prev, name: "" }));
+        setFormState((prev) => ({ ...prev, name: "" }));
+      }
+    } catch (error) {
+      console.error("Error fetching customer info:", error);
+    }
+  };
+
   const checkUserExists = async (phoneNumber) => {
+    console.log("Checking if user exists for phone number:", phoneNumber);
     try {
       const response = await axios.get(
         `https://api-pointify.reso.vn/api/memberships?apiKey=34519997-3d4b-4b31-857f-d6612082c11b&phoneNumber=${phoneNumber}`
       );
-      // Kiểm tra xem có bất kỳ mục nào trong mảng items có phoneNumber khớp không
-      return response.data.items.some(item => item.phoneNumber === phoneNumber);
+      const exists = response.data.items.some(item => item.phoneNumber === phoneNumber);
+      console.log("User exists:", exists);
+      return exists;
     } catch (error) {
       console.error("Error checking user existence:", error);
       return false;
     }
   };
-  
+
   const handleSubmit = async () => {
-    if (validateCustomStylesForm()) {
+    if (validateForm()) {
       setIsLoadingCircle(true);
-  
-      // Lấy thông tin khách hàng từ các trường nhập
+      console.log("Form is valid, proceeding to submit...");
+
       const customerInfo = {
-        fullName: name,
-        phoneNumber: phone,
-        buildingId: building.value,
-        isEnroll:false,
+        fullName: formData.name,
+        phoneNumber: formData.phone,
+        buildingId: formData.building.value,
+        isEnroll: false,
       };
-  
+
       try {
-     
         const userExists = await checkUserExists(customerInfo.phoneNumber);
-  
+        console.log("User does not exist, creating new user...");
         if (!userExists) {
-         
-          console.log("User does not exist, creating user.");
-  
           await axios.post(
             "https://api.vhgp.net/api/v1/customer-management",
             customerInfo
           );
-          console.log("User created:", customerInfo);
-        } else {
-          console.log("User exists:", customerInfo);
         }
-  
-       
+
         let order = {
-          timeReceived: timeReceived,
-          timeDelivery: timeDelivery,
-          paymentType: paymentName.value,
-          total: parseFloat(total),
-          shipCost: shipCost,
-          orderNote: noteOfOrder,
-          customerNote: noteOfCustomer,
-          phoneNumber: phone,
-          fullName: name,
-          buildingId: building.value,
+          timeReceived: formData.timeReceived,
+          timeDelivery: formData.timeDelivery,
+          paymentType: formData.paymentName.value,
+          total: parseFloat(formData.total),
+          shipCost: formData.shipCost,
+          orderNote: formData.noteOfOrder,
+          customerNote: formData.noteOfCustomer,
+          phoneNumber: formData.phone,
+          fullName: formData.name,
+          buildingId: formData.building.value,
           deliveryTimeId: "6",
         };
-  
-        const res = await createOrder(store.value, order);
-        console.log("Create order (res):", res);
-  
+        console.log("Order data:", order);
+
+        const res = await createOrder(formData.store.value, order);
+
         if (res.data) {
-          // Đặt lại trạng thái của các trường nhập
           setIsLoadingCircle(false);
           notify("Thêm mới thành công", "Success");
           resetFields();
@@ -424,24 +403,24 @@ const CreateOrder = () => {
       }
     }
   };
-  
-  // Hàm đặt lại giá trị của các trường nhập
+
   const resetFields = () => {
-    setStore("");
-    setBuilding("");
-    setName("");
-    setPhone("");
-    setTotal("");
-    setNoteOfOrder("");
-    setNoteOfCustomer("");
-    setPaymentName("");
-    setShipCost("");
-    setTimeReceived("");
-    setTimeDelivery("");
+    console.log("Resetting form fields...");
+    setFormData({
+      productInformation: "",
+      timeReceived: "",
+      timeDelivery: "",
+      store: "",
+      building: "",
+      name: "",
+      phone: "",
+      total: "",
+      shipCost: "",
+      noteOfOrder: "",
+      noteOfCustomer: "",
+      paymentName: "",
+    });
   };
-  
-  
-  
 
   const getSelectStyles = (isValid, isInvalid) => ({
     control: (provided, state) => ({
@@ -463,8 +442,6 @@ const CreateOrder = () => {
       margin: "5px",
     }),
   });
-
-
   return (
     <>
       <SimpleHeader name="Tạo vận đơn" parentName="Quản Lý" />
@@ -486,19 +463,14 @@ const CreateOrder = () => {
                 placeholder="Nhập command"
                 value={commandBoxValue}
                 onChange={handleCommandChange}
-                className={
-                  commandBoxValueState === "invalid" ? "is-invalid" : ""
-                }
+                className={commandBoxValueState === "invalid" ? "is-invalid" : ""}
               />
               {commandBoxValueState && (
                 <div
-                  className={
-                    commandBoxValueState === "valid" ? "valid" : "invalid"
-                  }
+                  className={commandBoxValueState === "valid" ? "valid" : "invalid"}
                   style={{
                     fontSize: "80%",
-                    color:
-                      commandBoxValueState === "valid" ? "#2dce89" : "#fb6340",
+                    color: commandBoxValueState === "valid" ? "#2dce89" : "#fb6340",
                     marginTop: "0.25rem",
                   }}
                 >
@@ -507,7 +479,7 @@ const CreateOrder = () => {
               )}
             </div>
           </div>
-
+  
           <div className="col-lg-12">
             <Card>
               {/* TITLE ĐƠN HÀNG */}
@@ -524,7 +496,7 @@ const CreateOrder = () => {
                   <h2 className="mb-0">Thông tin đơn hàng</h2>
                 </CardHeader>
               </div>
-
+  
               {/* FORM NEW MENU */}
               <div className="col-md-12">
                 <form>
@@ -537,17 +509,17 @@ const CreateOrder = () => {
                           <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
-                          valid={noteOfOrderState === "valid"}
-                          invalid={noteOfOrderState === "invalid"}
+                          valid={formState.noteOfOrder === "valid"}
+                          invalid={formState.noteOfOrder === "invalid"}
                           className="form-control"
                           type="text"
-                          value={`${noteOfOrder}`}
-                          
+                          value={formData.noteOfOrder}
                           onChange={(e) => {
-                            setNoteOfOrder(e.target.value);
+                            setFormData((prev) => ({ ...prev, noteOfOrder: e.target.value }));
+                            setFormState((prev) => ({ ...prev, noteOfOrder: "" }));
                           }}
                         />
-                        {noteOfOrderState === "invalid" && (
+                        {formState.noteOfOrder === "invalid" && (
                           <div
                             className="invalid"
                             style={{
@@ -556,45 +528,12 @@ const CreateOrder = () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            {noteOfOrderMessage}
+                            {formMessages.noteOfOrder}
                           </div>
                         )}
                       </div>
                     </div>
-
-                    {/* Product Information */}
-                    {/* <div className="col-md-6">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Thông tin sản phẩm{" "}
-                          <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <Input
-                          valid={productInformationState === "valid"}
-                          invalid={productInformationState === "invalid"}
-                          className="form-control"
-                          type="text"
-                          value={productInformation}
-                          onPaste={handlePaste}
-                          onChange={(e) => {
-                            setProductInformation(e.target.value);
-                          }}
-                        />
-                        {productInformationState === "invalid" && (
-                          <div
-                            className="invalid"
-                            style={{
-                              fontSize: "80%",
-                              color: "#fb6340",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            {productInformationMessage}
-                          </div>
-                        )}
-                      </div>
-                    </div> */}
-
+  
                     {/* Time Received */}
                     <div className="col-md-3">
                       <div className="form-group">
@@ -603,14 +542,17 @@ const CreateOrder = () => {
                           <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
-                          valid={timeReceivedState === "valid"}
-                          invalid={timeReceivedState === "invalid"}
+                          valid={formState.timeReceived === "valid"}
+                          invalid={formState.timeReceived === "invalid"}
                           className="form-control"
                           type="time"
-                          value={timeReceived}
-                          onChange={(e) => setTimeReceived(e.target.value)}
+                          value={formData.timeReceived}
+                          onChange={(e) => {
+                            setFormData((prev) => ({ ...prev, timeReceived: e.target.value }));
+                            setFormState((prev) => ({ ...prev, timeReceived: "" }));
+                          }}
                         />
-                        {timeDeliveryState === "invalid" && (
+                        {formState.timeReceived === "invalid" && (
                           <div
                             className="invalid"
                             style={{
@@ -619,12 +561,12 @@ const CreateOrder = () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            {timeDeliveryMessage}
+                            {formMessages.timeReceived}
                           </div>
                         )}
                       </div>
                     </div>
-
+  
                     {/* ESTIMATED DELIVERY TIME */}
                     <div className="col-md-3">
                       <div className="form-group">
@@ -633,14 +575,17 @@ const CreateOrder = () => {
                           <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
-                          valid={timeDeliveryState === "valid"}
-                          invalid={timeDeliveryState === "invalid"}
+                          valid={formState.timeDelivery === "valid"}
+                          invalid={formState.timeDelivery === "invalid"}
                           className="form-control"
                           type="time"
-                          value={timeDelivery}
-                          onChange={(e) => setTimeDelivery(e.target.value)}
+                          value={formData.timeDelivery}
+                          onChange={(e) => {
+                            setFormData((prev) => ({ ...prev, timeDelivery: e.target.value }));
+                            setFormState((prev) => ({ ...prev, timeDelivery: "" }));
+                          }}
                         />
-                        {timeDeliveryState === "invalid" && (
+                        {formState.timeDelivery === "invalid" && (
                           <div
                             className="invalid"
                             style={{
@@ -649,39 +594,36 @@ const CreateOrder = () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            {timeDeliveryMessage}
+                            {formMessages.timeDelivery}
                           </div>
                         )}
                       </div>
                     </div>
-
+  
                     {/* STORE */}
                     <div className="col-md-3">
                       <div className="form-group">
                         <label className="form-control-label">
                           Cửa hàng <span style={{ color: "red" }}>*</span>
                         </label>
-                        <div
-                          className={`${
-                            storeState === "invalid" && "error-select"
-                          }`}
-                        >
+                        <div className={`${formState.store === "invalid" && "error-select"}`}>
                           <Select
                             options={optionsStore}
                             placeholder="Cửa hàng"
                             styles={getSelectStyles(
-                              storeState === "valid",
-                              storeState === "invalid"
+                              formState.store === "valid",
+                              formState.store === "invalid"
                             )}
-                            value={store}
+                            value={formData.store}
                             onChange={(e) => {
-                              setStore(e);
+                              setFormData((prev) => ({ ...prev, store: e }));
+                              setFormState((prev) => ({ ...prev, store: "" }));
                             }}
-                          ></Select>
+                          />
                         </div>
                       </div>
                     </div>
-
+  
                     {/* TOTAL (Giá trị đơn hàng chứa ship) */}
                     <div className="col-md-3">
                       <div className="form-group">
@@ -691,24 +633,22 @@ const CreateOrder = () => {
                         </label>
                         <Input
                           min={0}
-                          valid={totalState === "valid"}
-                          invalid={totalState === "invalid"}
+                          valid={formState.total === "valid"}
+                          invalid={formState.total === "invalid"}
                           className="form-control"
                           type="text"
                           id="example-search-input"
-                          value={`${total}`}
+                          value={formData.total}
                           onChange={(e) => {
-                            if (parseFloat(e.target.value) < 0) {
-                              setTotal("0");
-                            } else {
-                              setTotal(e.target.value);
-                            }
+                            const value = parseFloat(e.target.value);
+                            setFormData((prev) => ({ ...prev, total: isNaN(value) ? "" : value.toString() }));
+                            setFormState((prev) => ({ ...prev, total: "" }));
                           }}
                         />
-                        <div className="invalid-feedback">{totalMessage}</div>
+                        <div className="invalid-feedback">{formMessages.total}</div>
                       </div>
                     </div>
-
+  
                     {/* SHIP COST */}
                     <div className="col-md-3">
                       <div className="form-group">
@@ -717,26 +657,22 @@ const CreateOrder = () => {
                         </label>
                         <Input
                           min={0}
-                          valid={shipCostState === "valid"}
-                          invalid={shipCostState === "invalid"}
+                          valid={formState.shipCost === "valid"}
+                          invalid={formState.shipCost === "invalid"}
                           className="form-control"
                           type="text"
                           id="example-search-input"
-                          value={`${shipCost}`}
+                          value={formData.shipCost}
                           onChange={(e) => {
-                            if (parseFloat(e.target.value) < 0) {
-                              setShipCost("0");
-                            } else {
-                              setShipCost(e.target.value);
-                            }
+                            const value = parseFloat(e.target.value);
+                            setFormData((prev) => ({ ...prev, shipCost: isNaN(value) ? "" : value.toString() }));
+                            setFormState((prev) => ({ ...prev, shipCost: "" }));
                           }}
                         />
-                        <div className="invalid-feedback">
-                          {shipCostMessage}
-                        </div>
+                        <div className="invalid-feedback">{formMessages.shipCost}</div>
                       </div>
                     </div>
-
+  
                     {/* PAYMENT NAME */}
                     <div className="col-md-3">
                       <div className="form-group">
@@ -744,26 +680,22 @@ const CreateOrder = () => {
                           Phương thức thanh toán{" "}
                           <span style={{ color: "red" }}>*</span>
                         </label>
-                        <div
-                          className={`${
-                            paymentNameState === "invalid" && "error-select"
-                          }`}
-                        >
+                        <div className={`${formState.paymentName === "invalid" && "error-select"}`}>
                           <Select
                             options={optionsPaymentName}
                             placeholder="Thu hộ"
                             styles={getSelectStyles(
-                              paymentNameState === "valid",
-                              paymentNameState === "invalid"
+                              formState.paymentName === "valid",
+                              formState.paymentName === "invalid"
                             )}
-                            value={paymentName}
-                            // onPaste={handlePaste}
+                            value={formData.paymentName}
                             onChange={(e) => {
-                              setPaymentName(e);
+                              setFormData((prev) => ({ ...prev, paymentName: e }));
+                              setFormState((prev) => ({ ...prev, paymentName: "" }));
                             }}
                           />
                         </div>
-                        {paymentNameState === "invalid" && (
+                        {formState.paymentName === "invalid" && (
                           <div
                             className="invalid"
                             style={{
@@ -772,31 +704,12 @@ const CreateOrder = () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            Phương thức thanh toán không được để trống
+                            {formMessages.paymentName}
                           </div>
                         )}
                       </div>
                     </div>
-
-                    {/* NOTE OF ORDER */}
-                    {/* <div className="col-md-12">
-                      <div className="form-group">
-                        <label className="form-control-label">
-                          Ghi chú của đơn hàng
-                        </label>
-                        <textarea
-                          rows={3}
-                          className="form-control"
-                          type="search"
-                          id="example-search-input"
-                          value={`${noteOfOrder}`}
-                          onChange={(e) => {
-                            setNoteOfOrder(e.target.value);
-                          }}
-                        />
-                      </div>
-                    </div> */}
-
+  
                     {/* TITLE Customer */}
                     <div
                       style={{
@@ -807,14 +720,11 @@ const CreateOrder = () => {
                       }}
                       className="align-items-center"
                     >
-                      <CardHeader
-                        className="border-0"
-                        style={{ padding: "15px" }}
-                      >
+                      <CardHeader className="border-0" style={{ padding: "15px" }}>
                         <h2 className="mb-0">Thông tin khách hàng </h2>
                       </CardHeader>
                     </div>
-
+  
                     {/* FULL NAME */}
                     <div className="col-md-3">
                       <div className="form-group">
@@ -822,17 +732,18 @@ const CreateOrder = () => {
                           Tên khách hàng <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
-                          valid={nameState === "valid"}
-                          invalid={nameState === "invalid"}
+                          valid={formState.name === "valid"}
+                          invalid={formState.name === "invalid"}
                           className="form-control"
                           type="search"
                           id="example-search-input"
-                          value={`${name}`}
+                          value={formData.name}
                           onChange={(e) => {
-                            setName(e.target.value);
+                            setFormData((prev) => ({ ...prev, name: e.target.value }));
+                            setFormState((prev) => ({ ...prev, name: "" }));
                           }}
                         />
-                        {nameState === "invalid" && (
+                        {formState.name === "invalid" && (
                           <div
                             className="invalid"
                             style={{
@@ -841,12 +752,12 @@ const CreateOrder = () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            {nameMessage}
+                            {formMessages.name}
                           </div>
                         )}
                       </div>
                     </div>
-
+  
                     {/* PHONE NUMBER */}
                     <div className="col-md-3">
                       <div className="form-group">
@@ -854,17 +765,18 @@ const CreateOrder = () => {
                           Số điện thoại <span style={{ color: "red" }}>*</span>
                         </label>
                         <Input
-                          valid={phoneState === "valid"}
-                          invalid={phoneState === "invalid"}
+                          valid={formState.phone === "valid"}
+                          invalid={formState.phone === "invalid"}
                           className="form-control"
                           type="search"
                           id="example-search-input"
-                          value={phone}
+                          value={formData.phone}
                           onChange={(e) => {
-                            setPhone(e.target.value);
+                            setFormData((prev) => ({ ...prev, phone: e.target.value }));
+                            setFormState((prev) => ({ ...prev, phone: "" }));
                           }}
                         />
-                        {phoneState === "invalid" && (
+                        {formState.phone === "invalid" && (
                           <div
                             className="invalid"
                             style={{
@@ -873,37 +785,34 @@ const CreateOrder = () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            {phoneMessage}
+                            {formMessages.phone}
                           </div>
                         )}
                       </div>
                     </div>
-
+  
                     {/* BUILDING */}
                     <div className="col-md-6">
                       <div className="form-group">
                         <label className="form-control-label">
                           Địa điểm giao <span style={{ color: "red" }}>*</span>
                         </label>
-                        <div
-                          className={`${
-                            buildingState === "invalid" && "error-select"
-                          }`}
-                        >
+                        <div className={`${formState.building === "invalid" && "error-select"}`}>
                           <Select
                             options={optionsBuilding}
                             placeholder="Địa điểm giao"
                             styles={getSelectStyles(
-                              buildingState === "valid",
-                              buildingState === "invalid"
+                              formState.building === "valid",
+                              formState.building === "invalid"
                             )}
-                            value={building}
+                            value={formData.building}
                             onChange={(e) => {
-                              setBuilding(e);
+                              setFormData((prev) => ({ ...prev, building: e }));
+                              setFormState((prev) => ({ ...prev, building: "" }));
                             }}
                           />
                         </div>
-                        {buildingState === "invalid" && (
+                        {formState.building === "invalid" && (
                           <div
                             className="invalid"
                             style={{
@@ -912,27 +821,27 @@ const CreateOrder = () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            Địa điểm giao không được để trống
+                            {formMessages.building}
                           </div>
                         )}
                       </div>
                     </div>
-
+  
                     {/* NOTE OF CUSTOMER */}
                     <div className="col-md-12">
                       <div className="form-group">
                         <label className="form-control-label">
                           Ghi chú của khách hàng
-                          {/* <span style={{ color: "red" }}>*</span> */}
                         </label>
                         <textarea
                           rows={3}
                           className="form-control"
                           type="search"
                           id="example-search-input"
-                          value={`${noteOfCustomer}`}
+                          value={formData.noteOfCustomer}
                           onChange={(e) => {
-                            setNoteOfCustomer(e.target.value);
+                            setFormData((prev) => ({ ...prev, noteOfCustomer: e.target.value }));
+                            setFormState((prev) => ({ ...prev, noteOfCustomer: "" }));
                           }}
                         />
                       </div>
@@ -942,9 +851,7 @@ const CreateOrder = () => {
                   <Col className="mt-3  text-md-right mb-4" lg="12" xs="5">
                     {/* CREATE BUTTON */}
                     <Button
-                      onClick={() => {
-                        handleSubmit();
-                      }}
+                      onClick={handleSubmit}
                       className="btn-neutral"
                       color="default"
                       size="lg"
@@ -986,5 +893,6 @@ const CreateOrder = () => {
       </Container>
     </>
   );
+  
 };
 export default CreateOrder;

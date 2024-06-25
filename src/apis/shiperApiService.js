@@ -41,31 +41,18 @@ export const putShipper = (shipper) => {
 };
 //http://vhgp-api.vhgp.net/api/Shipper/GetRedis
 export const getShipperRedis = async () => {
-  return await axios.get("https://vhgp-api.vhgp.net/api/Shipper/GetRedis");
+  return await axios.get("https://vhgp-api.vhgp.net/api/shippers/redis");
 };
 
-//https://api.vhgp.net/api/v1/routes/get-delivery-point/${shipper.id}
-export const getShipperLocation = async (shipper) => {
-  return await axios.get(
-    `https://vhgp-api.vhgp.net/api/locations/${shipper.id}`
-  );
-};
-
-//http://vhgp-api.vhgp.net/api/locations/${shipper.id}
-export const getEndPoitLocation = async (shipper) => {
-  return await axios.get(
-    `https://api.vhgp.net/api/v1/routes/get-delivery-point/${shipper.id}`
-  );
-};
 
 //https://vhgp-api.vhgp.net/api/Shipper
 export const getAllShipper = async () => {
-  return await axios.get(`https://vhgp-api.vhgp.net/api/Shipper`);
+  return await axios.get(`https://vhgp-api.vhgp.net/api/shippers`);
 };
 
 //https://vhgp-api.vhgp.net/api/Shipper/GetTimeShipperOff/{shipperId}
 export const getTimeShipperOffline = async (shipper) => {
   return await axios.get(
-    `https://vhgp-api.vhgp.net/api/Shipper/GetTimeShipperOff/${shipper.id}`
+    `https://vhgp-api.vhgp.net/api/shippers/${shipper.id}/time-off`
   );
 };

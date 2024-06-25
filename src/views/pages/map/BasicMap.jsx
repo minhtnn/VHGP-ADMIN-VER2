@@ -24,13 +24,7 @@ import {
   SpeedDialAction,
   Fab,
 } from "@mui/material";
-
-import { AddIcCallOutlined, OnlinePrediction } from "@mui/icons-material";
-import WifiTetheringOffIcon from "@mui/icons-material/WifiTetheringOff";
-import MenuIcon from "@mui/icons-material/Menu";
 import AlarmOutlinedIcon from "@mui/icons-material/AlarmOutlined";
-import RoutingLine from "./LeafRoutingMachine";
-import AccessAlarmIcon from "@mui/icons-material/AccessAlarm";
 import HomeIcon from "@mui/icons-material/Home";
 import AddTaskIcon from "@mui/icons-material/AddTask";
 import HearingDisabledIcon from "@mui/icons-material/HearingDisabled";
@@ -43,8 +37,6 @@ import { useHistory } from "react-router-dom";
 
 import {
   getShipperRedis,
-  getEndPoitLocation,
-  getShipperLocation,
   getAllShipper,
   getTimeShipperOffline,
 } from "../../../apis/shiperApiService";
@@ -71,20 +63,12 @@ export default function BasicMap() {
   const [showAvailableOrder, setShowAvailableOrder] = useState(false);
   const [showCancelOrder, setShowCancelOrder] = useState(false);
   const [showDoneOrder, setShowDoneOrder] = useState(false);
-  const [shipperPaths, setShipperPaths] = useState(() => {
-    const savedPaths = localStorage.getItem("shipperPaths");
-    return savedPaths ? JSON.parse(savedPaths) : {};
-  });
   const [showShipperOrOrder, setShowShipperOrOrder] = useState(() => {
     const showShipperOrOrder = localStorage.getItem("showShipperOrOrder");
     return showShipperOrOrder === "shipper";
   });
   const [selectedShipperId, setSelectedShipperId] = useState(null);
   const [timeShipperOffline, setTimeShipperOffline] = useState({});
-  // const [shipperAndOrderPaths, setShipperAndOrderPaths] = useState([]);
-  // const [offlineTime, setOfflineTime] = useState(true);
-
-  // const history = useHistory();
 
   const mapRef = useRef(null);
 
@@ -129,13 +113,6 @@ export default function BasicMap() {
     setShowOfflineShippers(false);
   };
 
-  // const handleShowDeliveringOrders = () => {
-  //   setShowDeliveringOrder(!showDeliveringOrder);
-  //   setShowAvailableOrder(false);
-  //   setShowDoneOrder(false);
-  //   setShowCancelOrder(false);
-  // };
-
   const handleShowAvailableOrders = () => {
     setOpen(true);
     setShowAvailableOrder(!showAvailableOrder);
@@ -143,20 +120,6 @@ export default function BasicMap() {
     setShowDoneOrder(false);
     setShowCancelOrder(false);
   };
-
-  // const handleShowDoneOrders = () => {
-  //   setShowDoneOrder(!showDoneOrder);
-  //   setShowDeliveringOrder(false);
-  //   setShowAvailableOrder(false);
-  //   setShowCancelOrder(false);
-  // };
-
-  // const handleShowCancelOrder = () => {
-  //   setShowCancelOrder(!showCancelOrder);
-  //   setShowDeliveringOrder(false);
-  //   setShowAvailableOrder(false);
-  //   setShowDoneOrder(false);
-  // };
 
   const handleShipperClick = (shipper) => {
     if (selectedShipperId === shipper.id) {
@@ -220,47 +183,6 @@ export default function BasicMap() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // try {
-      // const newShippers = response.data;
-      // const newPaths = { ...shipperPaths };
-
-      // newShippers.forEach((shipper) => {
-      //   if (!newPaths[shipper.id]) {
-      //     newPaths[shipper.id] = [];
-      //   }
-      //   newPaths[shipper.id].push([
-      //     parseFloat(shipper.latitude),
-      //     parseFloat(shipper.longitude),
-      //   ]);
-      // });
-      // localStorage.setItem("shipperPaths", JSON.stringify(newPaths));
-      // console.log("Final updated paths:", shipperPaths); // Logging the final path structure
-
-      // const newShipperAndOrder = response.data;
-      // const location = {};
-      // for (const shipper of newShipperAndOrder) {
-      //   if (shipper.id === "an@gmail.com") {
-      //     const odApi = await getEndPoitLocation(shipper);
-      //     const spApi = await getShipperLocation(shipper);
-      //     if (!location[shipper.id]) {
-      //       location[shipper.id] = [];
-      //     }
-      //     location[shipper.id].push(
-      //       {
-      //         longitude: spApi.data.longitude,
-      //         latitude: spApi.data.latitude,
-      //       },
-      //       {
-      //         longitude: odApi.data.longitude,
-      //         latitude: odApi.data.latitude,
-      //       }
-      //     );
-      //     setShipperAndOrderPaths(location);
-      //   }
-      // }
-      // } catch (error) {
-      //   console.error("Error fetching data:", error);
-      // }
       try {
         const response = await getShipperRedis();
         setShippers(response.data);
@@ -367,10 +289,6 @@ export default function BasicMap() {
     return allShippers.filter((shipper) => shipper.status === status).length;
   };
 
-  // const countOrderByStatus = (status) => {
-  //   return orders.filter((order) => order.status === status).length;
-  // };
-
   const actions_1 = [
     {
       icon: <ElectricMopedIcon />,
@@ -400,23 +318,6 @@ export default function BasicMap() {
       name: `Order đang chờ(${orders.length})`,
       onClick: handleShowAvailableOrders,
     },
-    // {
-    //   icon: <AlarmOutlinedIcon />,
-    //   name: `Order đang giao(${countOrderByStatus("Đang giao hàng")})`,
-    //   onClick: handleShowDeliveringOrders,
-    // },
-    // {
-    //   icon: <WifiTetheringOffIcon />,
-    //   name: `Order đã giao hàng thành công (${countOrderByStatus(
-    //     "Đã hoàn thành"
-    //   )})`,
-    //   onClick: handleShowDoneOrders,
-    // },
-    // {
-    //   icon: <WifiTetheringOffIcon />,
-    //   name: `Order đã hủy (${countOrderByStatus("Đã hủy")})`,
-    //   onClick: handleShowCancelOrder,
-    // },
   ];
 
   const actions = showShipperOrOrder ? actions_1 : actions_2;
@@ -438,20 +339,12 @@ export default function BasicMap() {
       return shipper.status === 3;
     }
   });
-  // function getRandomColor() {
-  //   var letters = "0123456789ABCDEF";
-  //   var color = "#";
-  //   for (var i = 0; i < 6; i++) {
-  //     color += letters[Math.floor(Math.random() * 16)];
-  //   }
-  //   return color;
-  // }
+
   const handleMarkerClick = (shipper) => {
     handleShipperClickMap(shipper);
   };
 
   const showTimeShipperOffline = (shipper) => {
-    // Directly access the time using the shipper's ID.
     const times = timeShipperOffline[shipper.id];
     let timeParts = times[0].split(".");
     if (timeParts.length === 2) {
@@ -481,25 +374,11 @@ export default function BasicMap() {
               : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           }
         />
-        {/* {selectedShipperId && shipperPaths[selectedShipperId] ? (
-          <Polyline
-            key={
-              selectedShipperId + "-" + shipperPaths[selectedShipperId].length
-            }
-            pathOptions={{ color: getRandomColor(), weight: 5, opacity: 0.7 }}
-            positions={shipperPaths[selectedShipperId]}
-          />
-        ) : null} */}
         <SpeedDial
           ariaLabel="SpeedDial example"
-          sx={{
-            position: "absolute",
-            top: "4.5%", // Sử dụng phần trăm cho top
-            right: showShipperOrOrder ? "60%" : "70%", // Sử dụng phần trăm cho right để nó thích ứng tốt trên mọi thiết bị
-            transform: "translateY(-50%)", // Dùng transform để căn giữa đối tượng so với vị trí top của nó
-          }}
+          sx={{ position: "absolute", top: 20, right: 30, zIndex: 1000 }}
           icon={<HomeIcon />}
-          direction="right"
+          direction="down"
         >
           {actions.map((action) => (
             <SpeedDialAction
@@ -524,6 +403,7 @@ export default function BasicMap() {
             mask={false}
             maskClosable={false}
             maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
+            sx={{ zIndex: 1100 }} // Thiết lập z-index cao hơn SpeedDial
           >
             {orders.map((order) => (
               <React.Fragment key={order.id}>
@@ -584,6 +464,7 @@ export default function BasicMap() {
             mask={false}
             maskClosable={false}
             maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
+            sx={{ zIndex: 1100 }} // Thiết lập z-index cao hơn SpeedDial
           >
             {filteredShippers.map((shipper) => (
               <React.Fragment key={shipper.id}>
@@ -651,6 +532,7 @@ export default function BasicMap() {
             mask={false}
             maskClosable={false}
             maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
+            sx={{ zIndex: 1100 }} // Thiết lập z-index cao hơn SpeedDial
           >
             {filteredShippers.map((shipper) => (
               <React.Fragment key={shipper.id}>
@@ -695,10 +577,6 @@ export default function BasicMap() {
                           <span>
                             {orderOfShipper[shipper.id].map((s) => (
                               <>
-                                {/* <span>Id order: </span>
-                                <span style={{ fontWeight: "bold" }}>
-                                  {s.result[0].orderId},
-                                </span> */}
                                 {Object.keys(orderDetail).length > 0 && (
                                   <>
                                     <span>Shop : </span>
@@ -744,6 +622,7 @@ export default function BasicMap() {
             mask={false}
             maskClosable={false}
             maskStyle={{ backgroundColor: "transparent" }} // Thiết lập nền trong suốt
+            sx={{ zIndex: 1100 }} // Thiết lập z-index cao hơn SpeedDial
           >
             {filteredShippersOffline.map((shipper) => (
               <React.Fragment key={shipper.id}>
@@ -810,16 +689,6 @@ export default function BasicMap() {
                   },
                 }}
               >
-                {/* <Popup>
-                    <img src={shipper.img} alt={shipper.id} />
-                    <h2>{shipper.id}</h2>
-                    <p>Kinh độ: {shipper.latitude}</p>
-                    <p>Vĩ độ: {shipper.longitude}</p>
-                    <p>Biển số xe: {shipper.carindentify}</p>
-                    <p>
-                      Trạng thái: <StatusBadge status={shipper.status} />
-                    </p>
-                  </Popup> */}
                 <Popup>
                   <div className="popup_1">
                     <img src={shipper.img} alt={shipper.id} />
@@ -831,17 +700,10 @@ export default function BasicMap() {
                     </div>
                   </div>
 
-                  {/* <p>Kinh độ: {shipper.latitude}</p>
-                    <p>Vĩ độ: {shipper.longitude}</p> */}
                   {orderOfShipper[shipper.id] ? (
                     <p>
                       {orderOfShipper[shipper.id].map((s) => (
                         <>
-                          {/* Id order :{" "} */}
-                          {/* <span style={{ fontWeight: "bold" }}>
-                            {s.result[0].orderId},
-                          </span>
-                          <br /> */}
                           {Object.keys(orderDetail).length > 0 &&
                             s.result[0] &&
                             orderDetail[s.result[0].orderId] &&
@@ -939,24 +801,6 @@ export default function BasicMap() {
                 </Popup>
               </Marker>
             ))}
-        {/* {selectedShipperIdMap && shipperAndOrderPaths[selectedShipperIdMap] ? (
-          <RoutingLine
-            locations={[
-              {
-                latitude:
-                  shipperAndOrderPaths[selectedShipperIdMap][0].latitude,
-                longitude:
-                  shipperAndOrderPaths[selectedShipperIdMap][0].longitude,
-              },
-              {
-                latitude:
-                  shipperAndOrderPaths[selectedShipperIdMap][1].latitude,
-                longitude:
-                  shipperAndOrderPaths[selectedShipperIdMap][1].longitude,
-              },
-            ]}
-          />
-        ) : null} */}
       </MapContainer>
     </>
   );
